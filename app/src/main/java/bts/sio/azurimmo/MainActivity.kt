@@ -1,4 +1,4 @@
-package bts.sio.azurimmo1
+package bts.sio.azurimmo
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

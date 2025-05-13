@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Azurimmo1"
+rootProject.name = "Azurimmo"
 include(":app")
  

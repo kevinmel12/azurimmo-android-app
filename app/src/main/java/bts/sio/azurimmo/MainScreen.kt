@@ -1,4 +1,4 @@
-package bts.sio.azurimmo1
+package bts.sio.azurimmo
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold

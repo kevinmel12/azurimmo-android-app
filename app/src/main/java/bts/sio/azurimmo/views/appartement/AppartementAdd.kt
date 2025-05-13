@@ -71,7 +71,7 @@ fun AppartementAdd(onAddAppartement: (Appartement) -> Unit, batimentId: Int) {
             },
             modifier = Modifier.align(Alignment.End)
         ) {
-            Text("Ajouter le batiment ")
+            Text("Ajouter l'appartement ")
         }
     }
 }

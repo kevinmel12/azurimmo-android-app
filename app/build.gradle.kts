@@ -13,11 +13,11 @@ android {
             excludes += "META-INF/io.netty.versions.properties"
         }
     }
-    namespace = "bts.sio.azurimmo1"
+    namespace = "bts.sio.azurimmo"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "bts.sio.azurimmo1"
+        applicationId = "bts.sio.azurimmo"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -49,6 +49,7 @@ android {
 
 dependencies {
 
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
