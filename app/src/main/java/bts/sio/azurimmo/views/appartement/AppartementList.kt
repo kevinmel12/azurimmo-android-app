@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,7 +23,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun AppartementList(
     viewModel: AppartementViewModel = viewModel(),
     batimentId: Int,
-    onAddAppartementClick: () -> Unit // Nouveau paramètre pour ajouter un appartement
+    onAddAppartementClick: () -> Unit,
+    onAppartementClick: (Int) -> Unit,
+    onBackClick: () -> Unit
 ) {
 
     val viewModelBat: BatimentViewModel = viewModel()
@@ -36,6 +39,7 @@ fun AppartementList(
         viewModel.getAppartementsByBatimentId(batimentId)
         viewModelBat.getBatiment(batimentId)
     }
+
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             isLoading -> {
@@ -55,17 +59,36 @@ fun AppartementList(
             else -> {
                 FloatingActionButton(
                     onClick = {
-                        println("Bouton + cliqué") // Vérification Logcat
+                        println("Bouton + cliqué")
                         onAddAppartementClick()
                     },
                     modifier = Modifier
-                        .align(Alignment.BottomEnd) // Assure qu'il est bien visible
+                        .align(Alignment.BottomEnd)
                         .padding(16.dp)
                         .background(MaterialTheme.colorScheme.secondary),
                     content = {
                         Icon(Icons.Default.Add, contentDescription = "Ajouter un appartement")
                     }
                 )
+
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Bouton retour
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Retour")
+                        }
+                        Text(
+                            text = "Appartements",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+
                     LazyColumn {
                         if (batiment != null) {
                             item {
@@ -109,7 +132,10 @@ fun AppartementList(
                                 }
 
                                 items(appartements) { appartement ->
-                                    AppartementCard(appartement = appartement)
+                                    AppartementCard(
+                                        appartement = appartement,
+                                        onClick = { onAppartementClick(appartement.id ?: 0) }
+                                    )
                                 }
                             } else {
                                 item {
@@ -130,4 +156,4 @@ fun AppartementList(
             }
         }
     }
-
+}

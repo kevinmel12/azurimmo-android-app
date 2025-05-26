@@ -44,4 +44,10 @@ interface ApiService {
 
     @POST("api/appartements/")
     suspend fun addAppartement(@Body appartement: Appartement): Response<Appartement>
+
+    @POST("api/contrats/")
+    suspend fun addContrat(@Body contrat: Contrat): Response<Contrat>
+
+    @GET("api/contrats/appartement/{appartementId}")
+    suspend fun getContratsByAppartementId(@Path("appartementId") appartementId: Int): List<Contrat>
 }

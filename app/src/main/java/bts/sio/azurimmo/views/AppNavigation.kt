@@ -13,6 +13,8 @@ import bts.sio.azurimmo.views.appartement.AppartementAdd
 import bts.sio.azurimmo.views.appartement.AppartementList
 import bts.sio.azurimmo.views.batiment.BatimentAdd
 import bts.sio.azurimmo.views.batiment.BatimentList
+import bts.sio.azurimmo.views.contrat.ContratAdd
+import bts.sio.azurimmo.views.contrat.ContratList
 
 @Composable
 fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -21,7 +23,7 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         startDestination = "batiment_list",
         modifier = modifier
     ) {
-        // Liste des bâtiments avec bouton d'ajout
+        // Liste des bâtiments avec bouton d'ajout (page de base)
         composable("batiment_list") {
             BatimentList(
                 onBatimentClick = { batimentId ->
@@ -32,6 +34,7 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
                 }
             )
         }
+
         // Liste des appartements avec bouton d'ajout
         composable(
             route = "batiment_appartements_list/{batimentId}",
@@ -41,21 +44,72 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
             if (batimentId != null) {
                 AppartementList(
                     batimentId = batimentId,
-                    viewModel = viewModel(), // Récupération du ViewModel
+                    viewModel = viewModel(),
                     onAddAppartementClick = {
                         navController.navigate("add_appartement/$batimentId")
                     },
+                    onAppartementClick = { appartementId ->
+                        navController.navigate("appartement_contrat/$appartementId")
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
                 )
             } else {
                 Text("Erreur : Identifiant de bâtiment manquant")
             }
         }
 
+        // Contrat d'un appartement
+        composable(
+            route = "appartement_contrat/{appartementId}",
+            arguments = listOf(navArgument("appartementId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val appartementId = backStackEntry.arguments?.getInt("appartementId")
+            if (appartementId != null) {
+                ContratList(
+                    appartementId = appartementId,
+                    onAddContratClick = {
+                        navController.navigate("add_contrat/$appartementId")
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            } else {
+                Text("Erreur : Identifiant d'appartement manquant")
+            }
+        }
 
         composable("add_batiment") {
-            BatimentAdd(onBatimentAdd = {
-                navController.popBackStack() // La navigation est gérée ici
-            })
+            BatimentAdd(
+                onBatimentAdd = {
+                    navController.popBackStack()
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Route pour ajouter un contrat à un appartement
+        composable("add_contrat/{appartementId}",
+            arguments = listOf(navArgument("appartementId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val appartementId = backStackEntry.arguments?.getInt("appartementId")
+            if (appartementId != null) {
+                ContratAdd(
+                    onAddContrat = {
+                        navController.popBackStack()
+                    },
+                    appartementId = appartementId,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            } else {
+                Text("Erreur : Identifiant d'appartement manquant")
+            }
         }
 
         // Route pour ajouter un appartement
@@ -67,16 +121,16 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
             println("Ouverture de add_appartement avec batimentId = $batimentId")
 
             if (batimentId != null) {
-                AppartementAdd( onAddAppartement = { navController.popBackStack()},
-                    batimentId = batimentId
+                AppartementAdd(
+                    onAddAppartement = { navController.popBackStack()},
+                    batimentId = batimentId,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
                 )
             } else {
                 Text("Erreur : Identifiant de bâtiment manquant")
             }
         }
     }
-
-
-
-
 }

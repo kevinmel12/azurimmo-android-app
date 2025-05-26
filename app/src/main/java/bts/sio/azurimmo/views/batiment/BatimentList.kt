@@ -12,12 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-// Fonction Composable pour afficher la liste des bâtiments avec un bouton d'ajout
 @Composable
 fun BatimentList(
     viewModel: BatimentViewModel = viewModel(),
     onBatimentClick: (Int) -> Unit,
-    onAddBatimentClick: () -> Unit // Nouveau paramètre pour ajouter un bâtiment
+    onAddBatimentClick: () -> Unit
 ) {
     val batiments = viewModel.batiments.value
     val isLoading = viewModel.isLoading.value
@@ -48,6 +47,13 @@ fun BatimentList(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Titre
+                    Text(
+                        text = "Gestion des Bâtiments",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+
                     // Bouton pour ajouter un bâtiment
                     Button(
                         onClick = onAddBatimentClick,
