@@ -11,6 +11,9 @@ class ContratViewModel : ViewModel() {
     private val _contrats = mutableStateOf<List<Contrat>>(emptyList())
     val contrats: State<List<Contrat>> = _contrats
 
+    private val _contrat = mutableStateOf<Contrat?>(null)
+    val contrat: State<Contrat?> = _contrat
+
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
@@ -18,7 +21,7 @@ class ContratViewModel : ViewModel() {
     val errorMessage: State<String?> = _errorMessage
 
     init {
-        // Simuler un chargement de données initiales
+        // Chargement des données initiales
         getContrats()
     }
 
@@ -32,12 +35,25 @@ class ContratViewModel : ViewModel() {
                 _errorMessage.value = "Erreur : ${e.message}"
             } finally {
                 _isLoading.value = false
-                println("pas de chargement")
             }
         }
     }
 
-    // Nouvelle méthode pour récupérer les contrats par appartement
+    fun getContratById(contratId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.getContratById(contratId.toLong())
+                _contrat.value = response
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur lors du chargement du contrat : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Récupérer les contrats par appartement
     fun getContratsByAppartementId(appartementId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -58,13 +74,54 @@ class ContratViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // Envoi à l'API (ici, un POST)
                 val response = RetrofitInstance.api.addContrat(contrat)
                 if (response.isSuccessful) {
-                    // Ajout réussi, on met à jour la liste des contrats
-                    getContrats() // Recharge les contrats pour inclure le nouveau
+                    getContrats() // Recharge la liste
                 } else {
                     _errorMessage.value = "Erreur lors de l'ajout du contrat : ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun updateContrat(contrat: Contrat) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.updateContrat(contrat.id.toLong(), contrat)
+                if (response.isSuccessful) {
+                    // Recharge les contrats du même appartement si disponible
+                    contrat.appartement?.id?.let { appartementId ->
+                        getContratsByAppartementId(appartementId)
+                    } ?: getContrats() // Sinon recharge tous les contrats
+                } else {
+                    _errorMessage.value = "Erreur lors de la modification du contrat : ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteContrat(contratId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.deleteContrat(contratId.toLong())
+                if (response.isSuccessful) {
+                    // Recharge les contrats du même appartement si disponible
+                    val currentContrat = _contrat.value
+                    currentContrat?.appartement?.id?.let { appartementId ->
+                        getContratsByAppartementId(appartementId)
+                    } ?: getContrats() // Sinon recharge tous les contrats
+                } else {
+                    _errorMessage.value = "Erreur lors de la suppression du contrat : ${response.message()}"
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Erreur : ${e.message}"

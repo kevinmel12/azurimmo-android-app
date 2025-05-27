@@ -8,9 +8,12 @@ import kotlinx.coroutines.launch
 
 class LocataireViewModel : ViewModel() {
 
-    // Liste mutable des interventions
+    // Liste mutable des locataires
     private val _locataires = mutableStateOf<List<Locataire>>(emptyList())
     val locataires: State<List<Locataire>> = _locataires
+
+    private val _locataire = mutableStateOf<Locataire?>(null)
+    val locataire: State<Locataire?> = _locataire
 
     // État de chargement
     private val _isLoading = mutableStateOf(false)
@@ -21,17 +24,85 @@ class LocataireViewModel : ViewModel() {
     val errorMessage: State<String?> = _errorMessage
 
     init {
-        // Charger les interventions au démarrage
+        // Charger les locataires au démarrage
         getLocataires()
     }
 
-    private fun getLocataires() {
+    // CORRIGÉ: fonction publique au lieu de private
+    fun getLocataires() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // Appel de l'API
                 val response = RetrofitInstance.api.getLocataires()
                 _locataires.value = response
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun getLocataireById(locataireId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.getLocataireById(locataireId.toLong())
+                _locataire.value = response
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur lors du chargement du locataire : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun addLocataire(locataire: Locataire) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.addLocataire(locataire)
+                if (response.isSuccessful) {
+                    getLocataires() // Recharge la liste
+                } else {
+                    _errorMessage.value = "Erreur lors de l'ajout du locataire : ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun updateLocataire(locataire: Locataire) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.updateLocataire(locataire.id.toLong(), locataire)
+                if (response.isSuccessful) {
+                    getLocataires() // Recharge la liste
+                } else {
+                    _errorMessage.value = "Erreur lors de la modification du locataire : ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteLocataire(locataireId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.deleteLocataire(locataireId.toLong())
+                if (response.isSuccessful) {
+                    getLocataires() // Recharge la liste
+                } else {
+                    _errorMessage.value = "Erreur lors de la suppression du locataire : ${response.message()}"
+                }
             } catch (e: Exception) {
                 _errorMessage.value = "Erreur : ${e.message}"
             } finally {

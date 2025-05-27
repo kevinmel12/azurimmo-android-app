@@ -22,7 +22,7 @@ class BatimentViewModel : ViewModel() {
     val errorMessage: State<String?> = _errorMessage
 
     init {
-        // Simuler un chargement de données initiales
+        // Chargement des données initiales
         getBatiments()
     }
 
@@ -36,7 +36,6 @@ class BatimentViewModel : ViewModel() {
                 _errorMessage.value = "Erreur : ${e.message}"
             } finally {
                 _isLoading.value = false
-                println("pas de chargement")
             }
         }
     }
@@ -45,7 +44,7 @@ class BatimentViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = RetrofitInstance.api.getBatimentById(batimentId)
+                val response = RetrofitInstance.api.getBatimentById(batimentId.toLong()) // CORRIGÉ
                 _batiment.value = response
                 println("Bâtiment chargé : $response")
             } catch (e: Exception) {
@@ -60,11 +59,9 @@ class BatimentViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-// Envoi à l'API (ici, un POST)
                 val response = RetrofitInstance.api.addBatiment(batiment)
                 if (response.isSuccessful) {
-// Ajout réussi, on met à jour la liste des bâtiments
-                    getBatiments() // Recharge les bâtiments pour inclure le nouveau
+                    getBatiments() // Recharge la liste
                 } else {
                     _errorMessage.value = "Erreur lors de l'ajout du bâtiment : ${response.message()}"
                 }
@@ -76,6 +73,40 @@ class BatimentViewModel : ViewModel() {
         }
     }
 
+    fun updateBatiment(batiment: Batiment) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val batimentId = batiment.id?.toLong() ?: 0L // CORRIGÉ
+                val response = RetrofitInstance.api.updateBatiment(batimentId, batiment)
+                if (response.isSuccessful) {
+                    getBatiments() // Recharge la liste
+                } else {
+                    _errorMessage.value = "Erreur lors de la modification du bâtiment : ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteBatiment(batimentId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.deleteBatiment(batimentId.toLong()) // CORRIGÉ
+                if (response.isSuccessful) {
+                    getBatiments() // Recharge la liste
+                } else {
+                    _errorMessage.value = "Erreur lors de la suppression du bâtiment : ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 }
-
-

@@ -1,29 +1,96 @@
-import androidx.compose.runtime.Composable
-import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
-import java.text.SimpleDateFormat
-import java.util.Locale
+package bts.sio.azurimmo.views.locataire
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import bts.sio.azurimmo.model.Locataire
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
-fun LocataireCard(locataire: Locataire) {
+fun LocataireCard(
+    locataire: Locataire,
+    onClick: (Int) -> Unit,
+    onEdit: (Locataire) -> Unit,
+    onDelete: (Locataire) -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
     val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
-    val formattedDateDateN = locataire.dateN?.let { dateFormat.format(it) } ?: "Date non spécifiée"
+    val formattedDateN = locataire.dateN?.let { dateFormat.format(it) } ?: "Date non spécifiée"
 
-    Text(
-        text = "Nom : ${locataire.nom ?: "Pas de nom renseigné."}",
-        style = MaterialTheme.typography.bodyLarge
-    )
-    Text(
-        text = "Prénom : ${locataire.prenom ?: "Pas prénom renseigné"}",
-        style = MaterialTheme.typography.bodyLarge
-    )
-    Text(
-        text = "DateN : $formattedDateDateN",
-        style = MaterialTheme.typography.bodyLarge
-    )
-    Text(
-        text = "LienN : ${locataire.lieuN ?: "Pas de lieuN renseigné."}",
-        style = MaterialTheme.typography.bodyLarge
-    )
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { onClick(locataire.id.toInt()) },
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            // Contenu principal de la card
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "${locataire.prenom ?: ""} ${locataire.nom ?: ""}",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Date de naissance : $formattedDateN",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Lieu de naissance : ${locataire.lieuN ?: "Non renseigné"}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // Menu contextuel
+            Box {
+                IconButton(
+                    onClick = { showMenu = true }
+                ) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = "Options"
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Modifier") },
+                        onClick = {
+                            showMenu = false
+                            onEdit(locataire)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Supprimer") },
+                        onClick = {
+                            showMenu = false
+                            onDelete(locataire)
+                        }
+                    )
+                }
+            }
+        }
+    }
 }

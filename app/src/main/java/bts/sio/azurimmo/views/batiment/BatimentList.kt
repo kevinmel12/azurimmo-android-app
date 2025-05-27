@@ -11,12 +11,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import bts.sio.azurimmo.model.Batiment
 
 @Composable
 fun BatimentList(
     viewModel: BatimentViewModel = viewModel(),
     onBatimentClick: (Int) -> Unit,
-    onAddBatimentClick: () -> Unit
+    onAddBatimentClick: () -> Unit,
+    onEditBatiment: (Batiment) -> Unit,
+    onDeleteBatiment: (Batiment) -> Unit
 ) {
     val batiments = viewModel.batiments.value
     val isLoading = viewModel.isLoading.value
@@ -69,7 +72,12 @@ fun BatimentList(
                         items(batiments) { batiment ->
                             BatimentCard(
                                 batiment = batiment,
-                                onClick = { onBatimentClick(batiment.id) }
+                                onClick = { onBatimentClick(batiment.id.toInt()) },
+                                onEdit = onEditBatiment,
+                                onDelete = { batimentToDelete ->
+                                    viewModel.deleteBatiment(batimentToDelete.id.toInt())
+                                    onDeleteBatiment(batimentToDelete)
+                                }
                             )
                         }
                     }

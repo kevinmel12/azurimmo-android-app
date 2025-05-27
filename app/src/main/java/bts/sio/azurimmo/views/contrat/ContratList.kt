@@ -12,16 +12,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import bts.sio.azurimmo.model.Contrat
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.*
 
 @Composable
 fun ContratList(
     viewModel: ContratViewModel = viewModel(),
     appartementId: Int? = null,
     onAddContratClick: () -> Unit,
+    onContratClick: (Int) -> Unit,
+    onEditContrat: (Contrat) -> Unit,
+    onDeleteContrat: (Contrat) -> Unit,
     onBackClick: () -> Unit
 ) {
     val contrats = viewModel.contrats.value
@@ -65,7 +71,7 @@ fun ContratList(
                             Icon(Icons.Default.ArrowBack, contentDescription = "Retour")
                         }
                         Text(
-                            text = if (appartementId != null) "Contrat de l'appartement" else "Tous les contrats",
+                            text = if (appartementId != null) "Contrats de l'appartement" else "Tous les contrats",
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(start = 8.dp)
                         )
@@ -92,7 +98,12 @@ fun ContratList(
                     } else {
                         LazyColumn {
                             items(contrats) { contrat ->
-                                ContratCard(contrat = contrat)
+                                ContratCard(
+                                    contrat = contrat,
+                                    onClick = onContratClick,
+                                    onEdit = onEditContrat,
+                                    onDelete = onDeleteContrat
+                                )
                             }
                         }
                     }
@@ -103,34 +114,83 @@ fun ContratList(
 }
 
 @Composable
-fun ContratCard(contrat: Contrat) {
+fun ContratCard(
+    contrat: Contrat,
+    onClick: (Int) -> Unit,
+    onEdit: (Contrat) -> Unit,
+    onDelete: (Contrat) -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable { onClick(contrat.id.toInt()) },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
         ) {
-            Text(
-                text = "Contrat #${contrat.id}",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Loyer: ${contrat.montantLoyer}€",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Charges: ${contrat.montantCharges}€",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Statut: ${contrat.statut}",
-                style = MaterialTheme.typography.bodyMedium
-            )
+            // Contenu principal de la card
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Contrat #${contrat.id}",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Loyer: ${contrat.montantLoyer}€",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Charges: ${contrat.montantCharges}€",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Statut: ${contrat.statut}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // Menu contextuel
+            Box {
+                IconButton(
+                    onClick = { showMenu = true }
+                ) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = "Options"
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Modifier") },
+                        onClick = {
+                            showMenu = false
+                            onEdit(contrat)
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Supprimer") },
+                        onClick = {
+                            showMenu = false
+                            onDelete(contrat)
+                        }
+                    )
+                }
+            }
         }
     }
 }

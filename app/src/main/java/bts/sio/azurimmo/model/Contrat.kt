@@ -8,5 +8,7 @@ data class Contrat(
     val dateSortie: Date,
     val montantLoyer: Double,
     val montantCharges: Double,
-    val statut: String
+    val statut: String,
+    val appartement: Appartement? = null,  // AJOUTÉ
+    val locataire: Locataire? = null       // AJOUTÉ
 )

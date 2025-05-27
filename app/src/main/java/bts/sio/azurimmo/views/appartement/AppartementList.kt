@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import bts.sio.azurimmo.model.Appartement
 
 @Composable
 fun AppartementList(
@@ -25,6 +26,8 @@ fun AppartementList(
     batimentId: Int,
     onAddAppartementClick: () -> Unit,
     onAppartementClick: (Int) -> Unit,
+    onEditAppartement: (Appartement) -> Unit,
+    onDeleteAppartement: (Appartement) -> Unit,
     onBackClick: () -> Unit
 ) {
 
@@ -134,7 +137,12 @@ fun AppartementList(
                                 items(appartements) { appartement ->
                                     AppartementCard(
                                         appartement = appartement,
-                                        onClick = { onAppartementClick(appartement.id ?: 0) }
+                                        onClick = { onAppartementClick(appartement.id ?: 0) },
+                                        onEdit = onEditAppartement,
+                                        onDelete = { appartementToDelete ->
+                                            viewModel.deleteAppartement(appartementToDelete.id ?: 0)
+                                            onDeleteAppartement(appartementToDelete)
+                                        }
                                     )
                                 }
                             } else {

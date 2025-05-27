@@ -9,9 +9,12 @@ import kotlinx.coroutines.launch
 
 class AppartementViewModel : ViewModel() {
 
-    // Liste mutable des bâtiments
+    // Liste mutable des appartements
     private val _appartements = mutableStateOf<List<Appartement>>(emptyList())
     val appartements: State<List<Appartement>> = _appartements
+
+    private val _appartement = mutableStateOf<Appartement?>(null)
+    val appartement: State<Appartement?> = _appartement
 
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
@@ -20,7 +23,7 @@ class AppartementViewModel : ViewModel() {
     val errorMessage: State<String?> = _errorMessage
 
     init {
-        // Simuler un chargement de données initiales
+        // Chargement des données initiales
         getAppartements()
     }
 
@@ -34,7 +37,20 @@ class AppartementViewModel : ViewModel() {
                 _errorMessage.value = "Erreur : ${e.message}"
             } finally {
                 _isLoading.value = false
-                println("pas de chargement")
+            }
+        }
+    }
+
+    fun getAppartementById(appartementId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.getAppartementById(appartementId.toLong()) // CORRIGÉ
+                _appartement.value = response
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur lors du chargement de l'appartement : ${e.message}"
+            } finally {
+                _isLoading.value = false
             }
         }
     }
@@ -62,11 +78,9 @@ class AppartementViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-// Envoi à l'API (ici, un POST)
                 val response = RetrofitInstance.api.addAppartement(appartement)
                 if (response.isSuccessful) {
-// Ajout réussi, on met à jour la liste des bâtiments
-                    getAppartements() // Recharge les bâtiments pour inclure le nouveau
+                    getAppartements() // Recharge la liste
                 } else {
                     _errorMessage.value = "Erreur lors de l'ajout de l'appartement : ${response.message()}"
                 }
@@ -78,4 +92,47 @@ class AppartementViewModel : ViewModel() {
         }
     }
 
+    fun updateAppartement(appartement: Appartement) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val appartementId = appartement.id?.toLong() ?: 0L // CORRIGÉ
+                val response = RetrofitInstance.api.updateAppartement(appartementId, appartement)
+                if (response.isSuccessful) {
+                    // Recharge les appartements du même bâtiment
+                    appartement.batiment?.let { batiment ->
+                        getAppartementsByBatimentId(batiment.id.toInt())
+                    }
+                } else {
+                    _errorMessage.value = "Erreur lors de la modification de l'appartement : ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteAppartement(appartementId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = RetrofitInstance.api.deleteAppartement(appartementId.toLong()) // CORRIGÉ
+                if (response.isSuccessful) {
+                    // Recharge les appartements du même bâtiment
+                    val currentAppartement = _appartement.value
+                    currentAppartement?.batiment?.let { batiment ->
+                        getAppartementsByBatimentId(batiment.id.toInt())
+                    }
+                } else {
+                    _errorMessage.value = "Erreur lors de la suppression de l'appartement : ${response.message()}"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Erreur : ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 }
