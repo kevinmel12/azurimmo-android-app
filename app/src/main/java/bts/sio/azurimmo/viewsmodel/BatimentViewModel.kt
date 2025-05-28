@@ -44,7 +44,7 @@ class BatimentViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = RetrofitInstance.api.getBatimentById(batimentId.toLong()) // CORRIGÉ
+                val response = RetrofitInstance.api.getBatimentById(batimentId.toLong())
                 _batiment.value = response
                 println("Bâtiment chargé : $response")
             } catch (e: Exception) {
@@ -77,10 +77,10 @@ class BatimentViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val batimentId = batiment.id?.toLong() ?: 0L // CORRIGÉ
-                val response = RetrofitInstance.api.updateBatiment(batimentId, batiment)
+                val response = RetrofitInstance.api.updateBatiment(batiment.id, batiment)
                 if (response.isSuccessful) {
                     getBatiments() // Recharge la liste
+                    _errorMessage.value = null
                 } else {
                     _errorMessage.value = "Erreur lors de la modification du bâtiment : ${response.message()}"
                 }
@@ -96,17 +96,47 @@ class BatimentViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = RetrofitInstance.api.deleteBatiment(batimentId.toLong()) // CORRIGÉ
+                println("🗑️ Android - Tentative de suppression du bâtiment: $batimentId")
+                val response = RetrofitInstance.api.deleteBatiment(batimentId.toLong())
+
                 if (response.isSuccessful) {
+                    println("✅ Android - Bâtiment supprimé avec succès")
                     getBatiments() // Recharge la liste
+                    _errorMessage.value = null // Reset l'erreur
                 } else {
-                    _errorMessage.value = "Erreur lors de la suppression du bâtiment : ${response.message()}"
+                    println("❌ Android - Erreur suppression bâtiment: ${response.code()} - ${response.message()}")
+
+                    // ✅ AMÉLIORATION: Gestion spécifique des erreurs de contrainte
+                    when (response.code()) {
+                        409, 400 -> {
+                            _errorMessage.value = "❌ Impossible de supprimer ce bâtiment : il contient encore des appartements. Supprimez d'abord tous les appartements."
+                        }
+                        500 -> {
+                            _errorMessage.value = "❌ Erreur serveur : Le bâtiment est peut-être lié à des données existantes."
+                        }
+                        else -> {
+                            _errorMessage.value = "❌ Erreur lors de la suppression du bâtiment : ${response.message()}"
+                        }
+                    }
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Erreur : ${e.message}"
+                println("❌ Android - Exception suppression bâtiment: ${e.message}")
+
+                // ✅ AMÉLIORATION: Gestion des exceptions spécifiques
+                if (e.message?.contains("constraint", ignoreCase = true) == true ||
+                    e.message?.contains("foreign key", ignoreCase = true) == true) {
+                    _errorMessage.value = "❌ Ce bâtiment ne peut pas être supprimé car il contient des appartements. Supprimez d'abord tous les appartements."
+                } else {
+                    _errorMessage.value = "❌ Erreur : ${e.message}"
+                }
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    // ✅ NOUVEAU: Fonction pour nettoyer les messages d'erreur
+    fun clearError() {
+        _errorMessage.value = null
     }
 }

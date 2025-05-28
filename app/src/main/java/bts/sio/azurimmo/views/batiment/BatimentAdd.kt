@@ -57,7 +57,11 @@ fun BatimentAdd(onBatimentAdd: () -> Unit, onBackClick: () -> Unit) {
         Button(
             onClick = {
                 if (adresse.isNotBlank() && ville.isNotBlank()) {
-                    val batiment = Batiment(id = 0, adresse = adresse, ville = ville)
+                    val batiment = Batiment(
+                        id = 0L, // ✅ LIGNE 78 CORRIGÉE: 0L au lieu de null
+                        adresse = adresse,
+                        ville = ville
+                    )
                     viewModel.addBatiment(batiment)
                     onBatimentAdd()
                 }

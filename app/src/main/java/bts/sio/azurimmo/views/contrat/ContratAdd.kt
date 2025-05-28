@@ -90,76 +90,97 @@ fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> 
             placeholder = { Text("Actif") },
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
-            onClick = {
-                if (dateEntree.isNotBlank() && dateSortie.isNotBlank() &&
-                    montantLoyer.isNotBlank() && montantCharges.isNotBlank() &&
-                    statut.isNotBlank()) {
-
-                    println("Android - Création contrat pour appartement: $appartementId")
-
-                    try {
-                        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-
-                        val parsedDateEntree: java.sql.Date = try {
-                            val utilDate = dateFormat.parse(dateEntree)
-                            java.sql.Date(utilDate!!.time)
-                        } catch (e: Exception) {
-                            println("Erreur parsing date entrée: ${e.message}")
-                            java.sql.Date(System.currentTimeMillis())
-                        }
-
-                        val parsedDateSortie: java.sql.Date = try {
-                            val utilDate = dateFormat.parse(dateSortie)
-                            java.sql.Date(utilDate!!.time)
-                        } catch (e: Exception) {
-                            println("Erreur parsing date sortie: ${e.message}")
-                            java.sql.Date(System.currentTimeMillis())
-                        }
-
-                        val loyer = montantLoyer.toDoubleOrNull() ?: 0.0
-                        val charges = montantCharges.toDoubleOrNull() ?: 0.0
-
-                        val appartementLien = Appartement(
-                            id = appartementId.toLong(),
-                            numero = 0,
-                            description = "temp",
-                            surface = 0f,
-                            nbPieces = 0,
-                            batiment = Batiment(id = 0L, adresse = "temp", ville = "temp")
-                        )
-
-                        val nouveauContrat = Contrat(
-                            id = 0L,
-                            dateEntree = parsedDateEntree,
-                            dateSortie = parsedDateSortie,
-                            montantLoyer = loyer,
-                            montantCharges = charges,
-                            statut = statut,
-                            appartement = appartementLien,
-                            locataire = null
-                        )
-
-                        println("📄 Android - Contrat créé: loyer=${nouveauContrat.montantLoyer}€, appartement=${nouveauContrat.appartement?.id}")
-
-                        viewModel.addContrat(nouveauContrat)
-
-                        onAddContrat()
-
-                    } catch (e: Exception) {
-                        println("Android - Erreur critique création contrat: ${e.message}")
-                        e.printStackTrace()
-                    }
-                }
-            },
-            modifier = Modifier.align(Alignment.End),
-            enabled = dateEntree.isNotBlank() && dateSortie.isNotBlank() &&
-                    montantLoyer.isNotBlank() && montantCharges.isNotBlank() &&
-                    statut.isNotBlank()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Ajouter le contrat")
+            // Bouton Annuler
+            OutlinedButton(
+                onClick = onBackClick,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Annuler")
+            }
+
+            // Bouton Ajouter
+            Button(
+                onClick = {
+                    // ✅ Vérifier que tous les champs sont remplis
+                    if (dateEntree.isNotBlank() && dateSortie.isNotBlank() &&
+                        montantLoyer.isNotBlank() && montantCharges.isNotBlank() &&
+                        statut.isNotBlank()) {
+
+                        println("🔍 Android - Création contrat pour appartement: $appartementId")
+
+                        try {
+                            // ✅ CORRIGÉ: Parser les dates comme java.sql.Date (comme le backend attend)
+                            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+                            val parsedDateEntree: java.sql.Date = try {
+                                val utilDate = dateFormat.parse(dateEntree)
+                                java.sql.Date(utilDate!!.time) // ✅ Conversion java.util.Date -> java.sql.Date
+                            } catch (e: Exception) {
+                                println("❌ Erreur parsing date entrée: ${e.message}")
+                                java.sql.Date(System.currentTimeMillis())
+                            }
+
+                            val parsedDateSortie: java.sql.Date = try {
+                                val utilDate = dateFormat.parse(dateSortie)
+                                java.sql.Date(utilDate!!.time) // ✅ Conversion java.util.Date -> java.sql.Date
+                            } catch (e: Exception) {
+                                println("❌ Erreur parsing date sortie: ${e.message}")
+                                java.sql.Date(System.currentTimeMillis())
+                            }
+
+                            // ✅ Conversions numériques sécurisées
+                            val loyer = montantLoyer.toDoubleOrNull() ?: 0.0
+                            val charges = montantCharges.toDoubleOrNull() ?: 0.0
+
+                            // ✅ CORRIGÉ: Créer l'appartement avec Long ID nullable
+                            val appartementLien = Appartement(
+                                id = appartementId.toLong(), // ✅ Conversion Int -> Long
+                                numero = 0, // ✅ CORRIGÉ: Int au lieu de String
+                                description = "temp",
+                                surface = 0f,
+                                nbPieces = 0, // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
+                                batiment = Batiment(id = 0L, adresse = "temp", ville = "temp") // ✅ 0L temporaire
+                            )
+
+                            // ✅ CORRIGÉ: Créer le contrat avec les types exacts du backend
+                            val nouveauContrat = Contrat(
+                                id = null, // ✅ CORRIGÉ: null pour nouveau contrat
+                                dateEntree = parsedDateEntree, // ✅ java.sql.Date
+                                dateSortie = parsedDateSortie, // ✅ java.sql.Date
+                                montantLoyer = loyer,
+                                montantCharges = charges,
+                                statut = statut,
+                                appartement = appartementLien,
+                                locataire = null
+                            )
+
+                            println("📄 Android - Contrat créé: loyer=${nouveauContrat.montantLoyer}€, appartement=${nouveauContrat.appartement?.id}")
+
+                            // ✅ Envoyer au ViewModel
+                            viewModel.addContrat(nouveauContrat)
+
+                            // ✅ Fermer l'écran
+                            onAddContrat()
+
+                        } catch (e: Exception) {
+                            println("❌ Android - Erreur critique création contrat: ${e.message}")
+                            e.printStackTrace()
+                        }
+                    }
+                },
+                modifier = Modifier.weight(1f),
+                enabled = dateEntree.isNotBlank() && dateSortie.isNotBlank() &&
+                        montantLoyer.isNotBlank() && montantCharges.isNotBlank() &&
+                        statut.isNotBlank()
+            ) {
+                Text("Ajouter")
+            }
         }
     }
 }

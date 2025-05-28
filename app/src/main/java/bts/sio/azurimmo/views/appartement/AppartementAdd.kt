@@ -150,7 +150,7 @@ fun AppartementAdd(
                             batiment = batiment
                         )
 
-                        println("🏗Android - Création appartement: ${nouvelAppartement.numero} pour bâtiment ${batiment.id}")
+                        println("🏗️ Android - Création appartement: ${nouvelAppartement.numero} pour bâtiment ${batiment.id}")
                         viewModel.addAppartement(nouvelAppartement)
                         onAddAppartement()
                     }

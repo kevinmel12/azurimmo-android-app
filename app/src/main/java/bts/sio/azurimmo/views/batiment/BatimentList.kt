@@ -16,7 +16,7 @@ import bts.sio.azurimmo.model.Batiment
 @Composable
 fun BatimentList(
     viewModel: BatimentViewModel = viewModel(),
-    onBatimentClick: (Int) -> Unit,
+    onBatimentClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int
     onAddBatimentClick: () -> Unit,
     onEditBatiment: (Batiment) -> Unit,
     onDeleteBatiment: (Batiment) -> Unit
@@ -72,10 +72,10 @@ fun BatimentList(
                         items(batiments) { batiment ->
                             BatimentCard(
                                 batiment = batiment,
-                                onClick = { onBatimentClick(batiment.id.toInt()) },
+                                onClick = { onBatimentClick(batiment.id) }, // ✅ Direct car non-nullable
                                 onEdit = onEditBatiment,
                                 onDelete = { batimentToDelete ->
-                                    viewModel.deleteBatiment(batimentToDelete.id.toInt())
+                                    viewModel.deleteBatiment(batimentToDelete.id.toInt()) // ✅ Direct car non-nullable
                                     onDeleteBatiment(batimentToDelete)
                                 }
                             )
