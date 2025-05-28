@@ -20,23 +20,5 @@ class InterventionViewModel : ViewModel() {
     private val _errorMessage = mutableStateOf<String?>(null)
     val errorMessage: State<String?> = _errorMessage
 
-    init {
-        // Charger les interventions au démarrage
-        getInterventions()
-    }
 
-    private fun getInterventions() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                // Appel de l'API
-                val response = RetrofitInstance.api.getInterventions()
-                _interventions.value = response
-            } catch (e: Exception) {
-                _errorMessage.value = "Erreur : ${e.message}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
 }

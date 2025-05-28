@@ -10,8 +10,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import bts.sio.azurimmo.model.Appartement
+import bts.sio.azurimmo.model.Batiment
 import bts.sio.azurimmo.model.Contrat
-import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> Unit) {
@@ -47,55 +50,122 @@ fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> 
         TextField(
             value = dateEntree,
             onValueChange = { dateEntree = it },
-            label = { Text("Date d'entrée") },
+            label = { Text("Date d'entrée (DD/MM/YYYY)") },
+            placeholder = { Text("10/02/2025") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
+
         TextField(
             value = dateSortie,
             onValueChange = { dateSortie = it },
-            label = { Text("Date de sortie") },
+            label = { Text("Date de sortie (DD/MM/YYYY)") },
+            placeholder = { Text("10/02/2026") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
+
         TextField(
             value = montantLoyer,
             onValueChange = { montantLoyer = it },
             label = { Text("Montant du loyer") },
+            placeholder = { Text("800") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
+
         TextField(
             value = montantCharges,
             onValueChange = { montantCharges = it },
             label = { Text("Montant des charges") },
+            placeholder = { Text("100") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
+
         TextField(
             value = statut,
             onValueChange = { statut = it },
             label = { Text("Statut") },
+            placeholder = { Text("Actif") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(
             onClick = {
-                if (dateEntree.isNotBlank() && dateSortie.isNotBlank() && montantLoyer.isNotBlank() && montantCharges.isNotBlank() && statut.isNotBlank()) {
-                    val contrat = Contrat(
-                        id = 0,
-                        dateEntree = Date(), // Pour simplifier, on met la date actuelle
-                        dateSortie = Date(),
-                        montantLoyer = montantLoyer.toDouble(),
-                        montantCharges = montantCharges.toDouble(),
-                        statut = statut
-                    )
-                    viewModel.addContrat(contrat)
-                    onAddContrat() // On notifie le parent que l'ajout est fait
+                // ✅ Vérifier que tous les champs sont remplis
+                if (dateEntree.isNotBlank() && dateSortie.isNotBlank() &&
+                    montantLoyer.isNotBlank() && montantCharges.isNotBlank() &&
+                    statut.isNotBlank()) {
+
+                    println("🔍 Android - Création contrat pour appartement: $appartementId")
+
+                    // ✅ Bloc try-catch global pour éviter tout crash
+                    try {
+                        // ✅ Parser les dates avec gestion d'erreurs
+                        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+                        val parsedDateEntree: java.sql.Date = try {
+                            val date = dateFormat.parse(dateEntree)
+                            java.sql.Date(date!!.time)
+                        } catch (e: Exception) {
+                            println("❌ Erreur parsing date entrée: ${e.message}")
+                            java.sql.Date(System.currentTimeMillis())
+                        }
+
+                        val parsedDateSortie: java.sql.Date = try {
+                            val date = dateFormat.parse(dateSortie)
+                            java.sql.Date(date!!.time)
+                        } catch (e: Exception) {
+                            println("❌ Erreur parsing date sortie: ${e.message}")
+                            java.sql.Date(System.currentTimeMillis())
+                        }
+
+                        // ✅ Conversions numériques sécurisées
+                        val loyer = montantLoyer.toDoubleOrNull() ?: 0.0
+                        val charges = montantCharges.toDoubleOrNull() ?: 0.0
+
+                        // ✅ Créer l'appartement de liaison
+                        val appartementLien = Appartement(
+                            id = appartementId,
+                            numero = "temp",
+                            description = "temp",
+                            surface = 0f,
+                            nbrePieces = 0,
+                            batiment = Batiment(id = 0, adresse = "temp", ville = "temp")
+                        )
+
+                        // ✅ Créer le contrat complet
+                        val nouveauContrat = Contrat(
+                            id = null, // ✅ NULL pour création
+                            dateEntree = parsedDateEntree,
+                            dateSortie = parsedDateSortie,
+                            montantLoyer = loyer,
+                            montantCharges = charges,
+                            statut = statut,
+                            appartement = appartementLien,
+                            locataire = null
+                        )
+
+                        println("📄 Android - Contrat créé: loyer=${nouveauContrat.montantLoyer}€, appartement=${nouveauContrat.appartement?.id}")
+
+                        // ✅ Envoyer au ViewModel
+                        viewModel.addContrat(nouveauContrat)
+
+                        // ✅ Fermer l'écran
+                        onAddContrat()
+
+                    } catch (e: Exception) {
+                        println("❌ Android - Erreur critique création contrat: ${e.message}")
+                        e.printStackTrace()
+                    }
                 }
             },
             modifier = Modifier.align(Alignment.End),
-            enabled = dateEntree.isNotBlank() && dateSortie.isNotBlank() && montantLoyer.isNotBlank() && montantCharges.isNotBlank() && statut.isNotBlank()
+            enabled = dateEntree.isNotBlank() && dateSortie.isNotBlank() &&
+                    montantLoyer.isNotBlank() && montantCharges.isNotBlank() &&
+                    statut.isNotBlank()
         ) {
             Text("Ajouter le contrat")
         }

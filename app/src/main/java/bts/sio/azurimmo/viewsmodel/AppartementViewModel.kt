@@ -45,7 +45,7 @@ class AppartementViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = RetrofitInstance.api.getAppartementById(appartementId.toLong()) // CORRIGÉ
+                val response = RetrofitInstance.api.getAppartementById(appartementId.toLong())
                 _appartement.value = response
             } catch (e: Exception) {
                 _errorMessage.value = "Erreur lors du chargement de l'appartement : ${e.message}"
@@ -55,19 +55,33 @@ class AppartementViewModel : ViewModel() {
         }
     }
 
+    // ✅ CORRIGÉ: Debug complet + vider la liste d'abord
     fun getAppartementsByBatimentId(batimentId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
+            _appartements.value = emptyList() // ✅ CRITIQUE: vider d'abord pour éviter les anciens résultats !
+            _errorMessage.value = null // Reset erreur
+
             try {
+                println("🔍 Android - Recherche appartements pour bâtiment: $batimentId")
                 val response = RetrofitInstance.api.getAppartementsByBatimentId(batimentId)
+
+                println("📊 Android - Nombre d'appartements reçus: ${response.size}")
+                response.forEach { appartement ->
+                    println("🏠 Android - Appartement ${appartement.numero} - Bâtiment ID: ${appartement.batiment?.id}")
+                }
+
                 if (response.isNotEmpty()) {
                     _appartements.value = response
-                    println("Appartements chargés : $response")
+                    println("✅ Android - Appartements chargés avec succès")
                 } else {
-                    println("Aucun appartement trouvé pour le bâtiment $batimentId")
+                    println("⚠️ Android - Aucun appartement trouvé pour le bâtiment $batimentId")
+                    _appartements.value = emptyList()
                 }
             } catch (e: Exception) {
-                println("Erreur lors du chargement des appartements : ${e.message}")
+                println("❌ Android - Erreur lors du chargement des appartements: ${e.message}")
+                _errorMessage.value = "Erreur lors du chargement des appartements : ${e.message}"
+                _appartements.value = emptyList()
             } finally {
                 _isLoading.value = false
             }
@@ -96,7 +110,7 @@ class AppartementViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val appartementId = appartement.id?.toLong() ?: 0L // CORRIGÉ
+                val appartementId = appartement.id?.toLong() ?: 0L
                 val response = RetrofitInstance.api.updateAppartement(appartementId, appartement)
                 if (response.isSuccessful) {
                     // Recharge les appartements du même bâtiment
@@ -118,7 +132,7 @@ class AppartementViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = RetrofitInstance.api.deleteAppartement(appartementId.toLong()) // CORRIGÉ
+                val response = RetrofitInstance.api.deleteAppartement(appartementId.toLong())
                 if (response.isSuccessful) {
                     // Recharge les appartements du même bâtiment
                     val currentAppartement = _appartement.value

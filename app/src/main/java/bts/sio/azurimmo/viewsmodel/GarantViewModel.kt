@@ -19,24 +19,4 @@ class GarantViewModel : ViewModel() {
     // Message d'erreur
     private val _errorMessage = mutableStateOf<String?>(null)
     val errorMessage: State<String?> = _errorMessage
-
-    init {
-        // Charger les interventions au démarrage
-        getGarants()
-    }
-
-    private fun getGarants() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                // Appel de l'API
-                val response = RetrofitInstance.api.getGarants()
-                _garants.value = response
-            } catch (e: Exception) {
-                _errorMessage.value = "Erreur : ${e.message}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
 }

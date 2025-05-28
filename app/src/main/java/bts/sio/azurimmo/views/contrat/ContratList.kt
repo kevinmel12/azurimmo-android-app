@@ -126,7 +126,10 @@ fun ContratCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { onClick(contrat.id.toInt()) },
+            // ✅ CORRIGÉ: Gérer l'ID nullable avec un fallback
+            .clickable {
+                contrat.id?.let { id -> onClick(id) }
+            },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -142,7 +145,8 @@ fun ContratCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Contrat #${contrat.id}",
+                    // ✅ CORRIGÉ: Gérer l'ID nullable avec un fallback
+                    text = "Contrat #${contrat.id ?: "Nouveau"}",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(8.dp))

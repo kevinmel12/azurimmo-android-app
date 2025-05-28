@@ -21,22 +21,31 @@ class ContratViewModel : ViewModel() {
     val errorMessage: State<String?> = _errorMessage
 
     init {
-        // Chargement des données initiales
-        getContrats()
+        // ✅ CORRIGER: NE PAS charger tous les contrats au démarrage automatiquement
+        // On charge seulement quand c'est demandé explicitement
+        println("🔄 ContratViewModel - Initialisé sans chargement automatique")
     }
 
     private fun getContrats() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                println("🔄 Android - Chargement de TOUS les contrats")
                 val response = RetrofitInstance.api.getContrats()
                 _contrats.value = response
+                println("📊 Android - ${response.size} contrats chargés (tous)")
             } catch (e: Exception) {
+                println("❌ Android - Erreur chargement tous contrats: ${e.message}")
                 _errorMessage.value = "Erreur : ${e.message}"
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    // ✅ AJOUTER: Méthode publique pour charger tous les contrats si besoin
+    fun loadAllContrats() {
+        getContrats()
     }
 
     fun getContratById(contratId: Int) {
@@ -53,34 +62,58 @@ class ContratViewModel : ViewModel() {
         }
     }
 
-    // Récupérer les contrats par appartement
+    // ✅ CORRIGÉ: Debug complet + vider la liste d'abord pour les contrats
     fun getContratsByAppartementId(appartementId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
+            _contrats.value = emptyList() // ✅ CRITIQUE: vider d'abord pour éviter les anciens résultats !
+            _errorMessage.value = null // Reset erreur
+
             try {
+                println("🔍 Android - Recherche contrats pour appartement: $appartementId")
                 val response = RetrofitInstance.api.getContratsByAppartementId(appartementId)
-                _contrats.value = response
-                println("Contrats chargés pour appartement $appartementId : $response")
+
+                println("📊 Android - Nombre de contrats reçus: ${response.size}")
+                response.forEach { contrat ->
+                    println("📄 Android - Contrat ${contrat.id} - Appartement ID: ${contrat.appartement?.id}")
+                }
+
+                if (response.isNotEmpty()) {
+                    _contrats.value = response
+                    println("✅ Android - Contrats chargés avec succès")
+                } else {
+                    println("⚠️ Android - Aucun contrat trouvé pour l'appartement $appartementId")
+                    _contrats.value = emptyList()
+                }
             } catch (e: Exception) {
-                _errorMessage.value = "Erreur : ${e.message}"
-                println("Erreur lors du chargement des contrats : ${e.message}")
+                println("❌ Android - Erreur lors du chargement des contrats: ${e.message}")
+                _errorMessage.value = "Erreur lors du chargement des contrats : ${e.message}"
+                _contrats.value = emptyList()
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
+    // ✅ CORRIGÉ: Recharger les contrats de l'appartement après ajout
     fun addContrat(contrat: Contrat) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                println("🔍 Android - Envoi contrat au backend: ${contrat.montantLoyer}€, appartement: ${contrat.appartement?.id}")
                 val response = RetrofitInstance.api.addContrat(contrat)
                 if (response.isSuccessful) {
-                    getContrats() // Recharge la liste
+                    println("✅ Android - Contrat ajouté avec succès")
+                    // ✅ CORRIGER: Recharger les contrats de cet appartement spécifique !
+                    contrat.appartement?.id?.let { appartementId ->
+                        getContratsByAppartementId(appartementId)
+                    } ?: getContrats() // Fallback: recharge tous les contrats
                 } else {
+                    println("❌ Android - Erreur ajout contrat: ${response.message()}")
                     _errorMessage.value = "Erreur lors de l'ajout du contrat : ${response.message()}"
                 }
             } catch (e: Exception) {
+                println("❌ Android - Exception ajout contrat: ${e.message}")
                 _errorMessage.value = "Erreur : ${e.message}"
             } finally {
                 _isLoading.value = false
@@ -88,18 +121,25 @@ class ContratViewModel : ViewModel() {
         }
     }
 
+    // ✅ CORRIGÉ: Gérer les Int? nullable pour éviter l'erreur de compilation
     fun updateContrat(contrat: Contrat) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = RetrofitInstance.api.updateContrat(contrat.id.toLong(), contrat)
-                if (response.isSuccessful) {
-                    // Recharge les contrats du même appartement si disponible
-                    contrat.appartement?.id?.let { appartementId ->
-                        getContratsByAppartementId(appartementId)
-                    } ?: getContrats() // Sinon recharge tous les contrats
+                // ✅ CORRECTION: Vérifier que l'ID n'est pas null avant conversion
+                val contratId = contrat.id?.toLong()
+                if (contratId != null) {
+                    val response = RetrofitInstance.api.updateContrat(contratId, contrat)
+                    if (response.isSuccessful) {
+                        // Recharge les contrats du même appartement si disponible
+                        contrat.appartement?.id?.let { appartementId ->
+                            getContratsByAppartementId(appartementId)
+                        } ?: getContrats() // Sinon recharge tous les contrats
+                    } else {
+                        _errorMessage.value = "Erreur lors de la modification du contrat : ${response.message()}"
+                    }
                 } else {
-                    _errorMessage.value = "Erreur lors de la modification du contrat : ${response.message()}"
+                    _errorMessage.value = "Erreur : ID de contrat manquant"
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Erreur : ${e.message}"
@@ -109,6 +149,7 @@ class ContratViewModel : ViewModel() {
         }
     }
 
+    // ✅ CORRIGÉ: Gérer les Int? nullable pour éviter l'erreur de compilation
     fun deleteContrat(contratId: Int) {
         viewModelScope.launch {
             _isLoading.value = true

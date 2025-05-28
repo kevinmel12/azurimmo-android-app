@@ -139,13 +139,16 @@ fun ContratEdit(
                             contrat.dateSortie
                         }
 
+                        // ✅ CORRIGÉ: Créer le contrat avec les mêmes propriétés mais gérer l'ID nullable
                         val updatedContrat = Contrat(
-                            id = contrat.id,
+                            id = contrat.id, // ✅ Garder l'ID original (même s'il est nullable)
                             dateEntree = parsedDateEntree?.let { java.sql.Date(it.time) } ?: contrat.dateEntree,
                             dateSortie = parsedDateSortie?.let { java.sql.Date(it.time) } ?: contrat.dateSortie,
                             montantLoyer = montantLoyer.toDoubleOrNull() ?: contrat.montantLoyer,
                             montantCharges = montantCharges.toDoubleOrNull() ?: contrat.montantCharges,
-                            statut = statut
+                            statut = statut,
+                            appartement = contrat.appartement, // ✅ Garder l'appartement lié
+                            locataire = contrat.locataire // ✅ Garder le locataire lié
                         )
                         viewModel.updateContrat(updatedContrat)
                         onContratUpdate()

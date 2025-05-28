@@ -20,23 +20,4 @@ class PaiementViewModel : ViewModel() {
     private val _errorMessage = mutableStateOf<String?>(null)
     val errorMessage: State<String?> = _errorMessage
 
-    init {
-        // Charger les interventions au démarrage
-        getPaiements()
-    }
-
-    private fun getPaiements() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                // Appel de l'API
-                val response = RetrofitInstance.api.getPaiements()
-                _paiements.value = response
-            } catch (e: Exception) {
-                _errorMessage.value = "Erreur : ${e.message}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
 }
