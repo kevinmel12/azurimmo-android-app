@@ -55,7 +55,7 @@ class AppartementViewModel : ViewModel() {
         }
     }
 
-    // ✅ CORRIGÉ: Debug complet + vider la liste d'abord
+    // ✅ CRITIQUE: Le backend attend INT pour batimentId (pas Long)
     fun getAppartementsByBatimentId(batimentId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -64,6 +64,7 @@ class AppartementViewModel : ViewModel() {
 
             try {
                 println("🔍 Android - Recherche appartements pour bâtiment: $batimentId")
+                // ✅ CORRIGÉ: Passer directement l'Int (le backend attend int)
                 val response = RetrofitInstance.api.getAppartementsByBatimentId(batimentId)
 
                 println("📊 Android - Nombre d'appartements reçus: ${response.size}")

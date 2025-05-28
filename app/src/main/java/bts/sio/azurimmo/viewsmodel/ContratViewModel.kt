@@ -21,8 +21,6 @@ class ContratViewModel : ViewModel() {
     val errorMessage: State<String?> = _errorMessage
 
     init {
-        // ✅ CORRIGER: NE PAS charger tous les contrats au démarrage automatiquement
-        // On charge seulement quand c'est demandé explicitement
         println("🔄 ContratViewModel - Initialisé sans chargement automatique")
     }
 
@@ -43,7 +41,6 @@ class ContratViewModel : ViewModel() {
         }
     }
 
-    // ✅ AJOUTER: Méthode publique pour charger tous les contrats si besoin
     fun loadAllContrats() {
         getContrats()
     }
@@ -62,7 +59,7 @@ class ContratViewModel : ViewModel() {
         }
     }
 
-    // ✅ CORRIGÉ: Debug complet + vider la liste d'abord pour les contrats
+    // ✅ CRITIQUE: Le backend attend INT pour appartementId (pas Long)
     fun getContratsByAppartementId(appartementId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -71,6 +68,7 @@ class ContratViewModel : ViewModel() {
 
             try {
                 println("🔍 Android - Recherche contrats pour appartement: $appartementId")
+                // ✅ CORRIGÉ: Passer directement l'Int (pas de conversion en Long)
                 val response = RetrofitInstance.api.getContratsByAppartementId(appartementId)
 
                 println("📊 Android - Nombre de contrats reçus: ${response.size}")
@@ -105,8 +103,9 @@ class ContratViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     println("✅ Android - Contrat ajouté avec succès")
                     // ✅ CORRIGER: Recharger les contrats de cet appartement spécifique !
-                    contrat.appartement?.id?.let { appartementId ->
-                        getContratsByAppartementId(appartementId)
+                    contrat.appartement?.id?.let { appartementIdLong ->
+                        // ✅ CORRECTION: Convertir Long -> Int pour l'API backend
+                        getContratsByAppartementId(appartementIdLong.toInt())
                     } ?: getContrats() // Fallback: recharge tous les contrats
                 } else {
                     println("❌ Android - Erreur ajout contrat: ${response.message()}")
@@ -121,19 +120,17 @@ class ContratViewModel : ViewModel() {
         }
     }
 
-    // ✅ CORRIGÉ: Gérer les Int? nullable pour éviter l'erreur de compilation
     fun updateContrat(contrat: Contrat) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // ✅ CORRECTION: Vérifier que l'ID n'est pas null avant conversion
-                val contratId = contrat.id?.toLong()
+                val contratId = contrat.id
                 if (contratId != null) {
                     val response = RetrofitInstance.api.updateContrat(contratId, contrat)
                     if (response.isSuccessful) {
                         // Recharge les contrats du même appartement si disponible
-                        contrat.appartement?.id?.let { appartementId ->
-                            getContratsByAppartementId(appartementId)
+                        contrat.appartement?.id?.let { appartementIdLong ->
+                            getContratsByAppartementId(appartementIdLong.toInt())
                         } ?: getContrats() // Sinon recharge tous les contrats
                     } else {
                         _errorMessage.value = "Erreur lors de la modification du contrat : ${response.message()}"
@@ -149,7 +146,6 @@ class ContratViewModel : ViewModel() {
         }
     }
 
-    // ✅ CORRIGÉ: Gérer les Int? nullable pour éviter l'erreur de compilation
     fun deleteContrat(contratId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -158,8 +154,8 @@ class ContratViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     // Recharge les contrats du même appartement si disponible
                     val currentContrat = _contrat.value
-                    currentContrat?.appartement?.id?.let { appartementId ->
-                        getContratsByAppartementId(appartementId)
+                    currentContrat?.appartement?.id?.let { appartementIdLong ->
+                        getContratsByAppartementId(appartementIdLong.toInt())
                     } ?: getContrats() // Sinon recharge tous les contrats
                 } else {
                     _errorMessage.value = "Erreur lors de la suppression du contrat : ${response.message()}"

@@ -19,9 +19,9 @@ object RetrofitInstance {
         .addInterceptor(loggingInterceptor)
         .build()
 
-    // ✅ CORRIGER: Configuration Gson pour gérer les dates correctement
+    // ✅ CORRIGÉ: Format de date pour correspondre au backend SQL
     private val gson = GsonBuilder()
-        .setDateFormat("yyyy-MM-dd HH:mm:ss") // Format pour les dates
+        .setDateFormat("yyyy-MM-dd") // ✅ Format SQL date standard (sans heures pour les dates)
         .setLenient() // Plus permissif pour le parsing
         .create()
 

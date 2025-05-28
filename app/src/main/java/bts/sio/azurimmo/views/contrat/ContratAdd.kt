@@ -101,22 +101,21 @@ fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> 
 
                     println("🔍 Android - Création contrat pour appartement: $appartementId")
 
-                    // ✅ Bloc try-catch global pour éviter tout crash
                     try {
-                        // ✅ Parser les dates avec gestion d'erreurs
+                        // ✅ CORRIGÉ: Parser les dates comme java.sql.Date (comme le backend attend)
                         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
                         val parsedDateEntree: java.sql.Date = try {
-                            val date = dateFormat.parse(dateEntree)
-                            java.sql.Date(date!!.time)
+                            val utilDate = dateFormat.parse(dateEntree)
+                            java.sql.Date(utilDate!!.time) // ✅ Conversion java.util.Date -> java.sql.Date
                         } catch (e: Exception) {
                             println("❌ Erreur parsing date entrée: ${e.message}")
                             java.sql.Date(System.currentTimeMillis())
                         }
 
                         val parsedDateSortie: java.sql.Date = try {
-                            val date = dateFormat.parse(dateSortie)
-                            java.sql.Date(date!!.time)
+                            val utilDate = dateFormat.parse(dateSortie)
+                            java.sql.Date(utilDate!!.time) // ✅ Conversion java.util.Date -> java.sql.Date
                         } catch (e: Exception) {
                             println("❌ Erreur parsing date sortie: ${e.message}")
                             java.sql.Date(System.currentTimeMillis())
@@ -126,21 +125,21 @@ fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> 
                         val loyer = montantLoyer.toDoubleOrNull() ?: 0.0
                         val charges = montantCharges.toDoubleOrNull() ?: 0.0
 
-                        // ✅ Créer l'appartement de liaison
+                        // ✅ CORRIGÉ: Créer l'appartement avec Long ID (comme le backend attend)
                         val appartementLien = Appartement(
-                            id = appartementId,
-                            numero = "temp",
+                            id = appartementId.toLong(), // ✅ Conversion Int -> Long
+                            numero = 0, // ✅ CORRIGÉ: Int au lieu de String
                             description = "temp",
                             surface = 0f,
-                            nbrePieces = 0,
-                            batiment = Batiment(id = 0, adresse = "temp", ville = "temp")
+                            nbPieces = 0, // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
+                            batiment = Batiment(id = 0L, adresse = "temp", ville = "temp") // ✅ Long ID
                         )
 
-                        // ✅ Créer le contrat complet
+                        // ✅ CORRIGÉ: Créer le contrat avec les types exacts du backend
                         val nouveauContrat = Contrat(
-                            id = null, // ✅ NULL pour création
-                            dateEntree = parsedDateEntree,
-                            dateSortie = parsedDateSortie,
+                            id = 0L, // ✅ CORRIGÉ: 0L au lieu de null (le backend convertit 0 -> null)
+                            dateEntree = parsedDateEntree, // ✅ java.sql.Date
+                            dateSortie = parsedDateSortie, // ✅ java.sql.Date
                             montantLoyer = loyer,
                             montantCharges = charges,
                             statut = statut,
