@@ -18,7 +18,7 @@ import java.util.*
 @Composable
 fun LocataireCard(
     locataire: Locataire,
-    onClick: (Int) -> Unit,
+    onClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int
     onEdit: (Locataire) -> Unit,
     onDelete: (Locataire) -> Unit
 ) {
@@ -30,7 +30,9 @@ fun LocataireCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { onClick(locataire.id.toInt()) },
+            .clickable {
+                locataire.id?.let { onClick(it) } // ✅ CORRIGÉ: Gérer l'ID nullable
+            },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(8.dp)
     ) {

@@ -16,7 +16,7 @@ import java.util.*
 
 @Composable
 fun LocataireEdit(
-    locataireId: Int,
+    locataireId: Int, // ✅ Garde Int pour la compatibilité avec la navigation
     onLocataireUpdate: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -122,7 +122,7 @@ fun LocataireEdit(
                         }
 
                         val updatedLocataire = Locataire(
-                            id = locataire.id,
+                            id = locataire.id, // ✅ CORRIGÉ: Garder l'ID original (nullable)
                             nom = nom,
                             prenom = prenom,
                             lieuN = lieuN,
