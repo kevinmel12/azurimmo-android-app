@@ -14,7 +14,7 @@ import bts.sio.azurimmo.model.Appartement
 
 @Composable
 fun AppartementEdit(
-    appartementId: Int,
+    appartementId: Long, // ✅ CORRIGÉ: Long au lieu de Int pour correspondre au modèle
     onAppartementUpdate: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -22,20 +22,20 @@ fun AppartementEdit(
     val appartement = viewModel.appartement.value
     var description by remember { mutableStateOf("") }
     var numero by remember { mutableStateOf("") }
-    var nbrePieces by remember { mutableStateOf("") }
+    var nbPieces by remember { mutableStateOf("") } // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
     var surface by remember { mutableStateOf("") }
 
     // Charger l'appartement à modifier
     LaunchedEffect(appartementId) {
-        viewModel.getAppartementById(appartementId)
+        viewModel.getAppartementById(appartementId.toInt()) // ✅ Conversion Long -> Int pour l'API
     }
 
     // Peupler les champs une fois l'appartement chargé
     LaunchedEffect(appartement) {
         appartement?.let {
             description = it.description
-            numero = it.numero
-            nbrePieces = it.nbrePieces.toString()
+            numero = it.numero.toString() // ✅ CORRIGÉ: toString() car numero est Int
+            nbPieces = it.nbPieces.toString() // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
             surface = it.surface.toString()
         }
     }
@@ -63,14 +63,6 @@ fun AppartementEdit(
         }
 
         TextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Description") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
             value = numero,
             onValueChange = { numero = it },
             label = { Text("Numéro") },
@@ -79,17 +71,25 @@ fun AppartementEdit(
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
-            value = nbrePieces,
-            onValueChange = { nbrePieces = it },
+            value = surface,
+            onValueChange = { surface = it },
+            label = { Text("Surface (m²)") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = nbPieces, // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
+            onValueChange = { nbPieces = it },
             label = { Text("Nombre de pièces") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
-            value = surface,
-            onValueChange = { surface = it },
-            label = { Text("Surface (m²)") },
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Description") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -110,14 +110,14 @@ fun AppartementEdit(
             Button(
                 onClick = {
                     if (description.isNotBlank() && numero.isNotBlank() &&
-                        nbrePieces.isNotBlank() && surface.isNotBlank() && appartement != null) {
+                        nbPieces.isNotBlank() && surface.isNotBlank() && appartement != null) {
 
                         val updatedAppartement = Appartement(
                             id = appartement.id,
-                            numero = numero,
+                            numero = numero.toIntOrNull() ?: appartement.numero, // ✅ CORRIGÉ: Int
                             description = description,
                             surface = surface.toFloatOrNull() ?: appartement.surface,
-                            nbrePieces = nbrePieces.toIntOrNull() ?: appartement.nbrePieces,
+                            nbPieces = nbPieces.toIntOrNull() ?: appartement.nbPieces, // ✅ CORRIGÉ: nbPieces
                             batiment = appartement.batiment
                         )
                         viewModel.updateAppartement(updatedAppartement)
@@ -126,7 +126,7 @@ fun AppartementEdit(
                 },
                 modifier = Modifier.weight(1f),
                 enabled = description.isNotBlank() && numero.isNotBlank() &&
-                        nbrePieces.isNotBlank() && surface.isNotBlank()
+                        nbPieces.isNotBlank() && surface.isNotBlank()
             ) {
                 Text("Modifier")
             }

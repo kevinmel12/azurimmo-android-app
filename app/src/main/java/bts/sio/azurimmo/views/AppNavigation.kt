@@ -62,12 +62,12 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         // Modifier un bâtiment
         composable(
             route = "edit_batiment/{batimentId}",
-            arguments = listOf(navArgument("batimentId") { type = NavType.LongType }) // ✅ CORRIGÉ: LongType
+            arguments = listOf(navArgument("batimentId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val batimentId = backStackEntry.arguments?.getLong("batimentId") // ✅ CORRIGÉ: getLong
+            val batimentId = backStackEntry.arguments?.getLong("batimentId")
             if (batimentId != null) {
                 BatimentEdit(
-                    batimentId = batimentId,
+                    batimentId = batimentId.toInt(), // ✅ CORRIGÉ: Conversion Long -> Int
                     onBatimentUpdate = {
                         navController.popBackStack()
                     },
@@ -83,12 +83,12 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         // Liste des appartements avec boutons d'ajout/edit/delete
         composable(
             route = "batiment_appartements_list/{batimentId}",
-            arguments = listOf(navArgument("batimentId") { type = NavType.LongType }) // ✅ CORRIGÉ: LongType
+            arguments = listOf(navArgument("batimentId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val batimentId = backStackEntry.arguments?.getLong("batimentId") // ✅ CORRIGÉ: getLong
+            val batimentId = backStackEntry.arguments?.getLong("batimentId")
             if (batimentId != null) {
                 AppartementList(
-                    batimentId = batimentId,
+                    batimentId = batimentId, // ✅ CORRIGÉ: Passer directement le Long
                     viewModel = viewModel(),
                     onAddAppartementClick = {
                         navController.navigate("add_appartement/$batimentId")
@@ -113,13 +113,13 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
 
         // Ajouter un appartement
         composable("add_appartement/{batimentId}",
-            arguments = listOf(navArgument("batimentId") { type = NavType.LongType }) // ✅ CORRIGÉ: LongType
+            arguments = listOf(navArgument("batimentId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val batimentId = backStackEntry.arguments?.getLong("batimentId") // ✅ CORRIGÉ: getLong
+            val batimentId = backStackEntry.arguments?.getLong("batimentId")
             if (batimentId != null) {
                 AppartementAdd(
                     onAddAppartement = { navController.popBackStack() },
-                    batimentId = batimentId,
+                    batimentId = batimentId, // ✅ CORRIGÉ: Passer directement le Long
                     onBackClick = {
                         navController.popBackStack()
                     }
@@ -132,12 +132,12 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         // Modifier un appartement
         composable(
             route = "edit_appartement/{appartementId}",
-            arguments = listOf(navArgument("appartementId") { type = NavType.LongType }) // ✅ CORRIGÉ: LongType
+            arguments = listOf(navArgument("appartementId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val appartementId = backStackEntry.arguments?.getLong("appartementId") // ✅ CORRIGÉ: getLong
+            val appartementId = backStackEntry.arguments?.getLong("appartementId")
             if (appartementId != null) {
                 AppartementEdit(
-                    appartementId = appartementId,
+                    appartementId = appartementId, // ✅ CORRIGÉ: Passer directement le Long
                     onAppartementUpdate = {
                         navController.popBackStack()
                     },
@@ -153,12 +153,12 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         // Liste des contrats d'un appartement avec boutons d'ajout/edit/delete
         composable(
             route = "appartement_contrat/{appartementId}",
-            arguments = listOf(navArgument("appartementId") { type = NavType.LongType }) // ✅ CORRIGÉ: LongType
+            arguments = listOf(navArgument("appartementId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val appartementId = backStackEntry.arguments?.getLong("appartementId") // ✅ CORRIGÉ: getLong
+            val appartementId = backStackEntry.arguments?.getLong("appartementId")
             if (appartementId != null) {
                 ContratList(
-                    appartementId = appartementId,
+                    appartementId = appartementId.toInt(), // ✅ CORRIGÉ: Conversion Long -> Int pour ContratList
                     onAddContratClick = {
                         navController.navigate("add_contrat/$appartementId")
                     },
@@ -182,15 +182,15 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
 
         // Ajouter un contrat à un appartement
         composable("add_contrat/{appartementId}",
-            arguments = listOf(navArgument("appartementId") { type = NavType.LongType }) // ✅ CORRIGÉ: LongType
+            arguments = listOf(navArgument("appartementId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val appartementId = backStackEntry.arguments?.getLong("appartementId") // ✅ CORRIGÉ: getLong
+            val appartementId = backStackEntry.arguments?.getLong("appartementId")
             if (appartementId != null) {
                 ContratAdd(
                     onAddContrat = {
                         navController.popBackStack()
                     },
-                    appartementId = appartementId.toInt(), // ✅ Conversion pour ContratAdd qui attend Int
+                    appartementId = appartementId.toInt(), // ✅ CORRIGÉ: Conversion Long -> Int pour ContratAdd
                     onBackClick = {
                         navController.popBackStack()
                     }
@@ -203,12 +203,12 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         // Modifier un contrat
         composable(
             route = "edit_contrat/{contratId}",
-            arguments = listOf(navArgument("contratId") { type = NavType.LongType }) // ✅ CORRIGÉ: LongType
+            arguments = listOf(navArgument("contratId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val contratId = backStackEntry.arguments?.getLong("contratId") // ✅ CORRIGÉ: getLong
+            val contratId = backStackEntry.arguments?.getLong("contratId")
             if (contratId != null) {
                 ContratEdit(
-                    contratId = contratId,
+                    contratId = contratId.toInt(), // ✅ CORRIGÉ: Conversion Long -> Int pour ContratEdit
                     onContratUpdate = {
                         navController.popBackStack()
                     },
@@ -224,12 +224,12 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         // Liste des locataires d'un contrat avec boutons d'ajout/edit/delete
         composable(
             route = "contrat_locataires/{contratId}",
-            arguments = listOf(navArgument("contratId") { type = NavType.LongType }) // ✅ CORRIGÉ: LongType
+            arguments = listOf(navArgument("contratId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val contratId = backStackEntry.arguments?.getLong("contratId") // ✅ CORRIGÉ: getLong
+            val contratId = backStackEntry.arguments?.getLong("contratId")
             if (contratId != null) {
                 LocataireList(
-                    contratId = contratId,
+                    contratId = contratId.toInt(), // ✅ CORRIGÉ: Conversion Long -> Int pour LocataireList
                     onAddLocataireClick = {
                         navController.navigate("add_locataire")
                     },
@@ -266,12 +266,12 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         // Modifier un locataire
         composable(
             route = "edit_locataire/{locataireId}",
-            arguments = listOf(navArgument("locataireId") { type = NavType.LongType }) // ✅ CORRIGÉ: LongType
+            arguments = listOf(navArgument("locataireId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val locataireId = backStackEntry.arguments?.getLong("locataireId") // ✅ CORRIGÉ: getLong
+            val locataireId = backStackEntry.arguments?.getLong("locataireId")
             if (locataireId != null) {
                 LocataireEdit(
-                    locataireId = locataireId,
+                    locataireId = locataireId.toInt(), // ✅ CORRIGÉ: Conversion Long -> Int pour LocataireEdit
                     onLocataireUpdate = {
                         navController.popBackStack()
                     },

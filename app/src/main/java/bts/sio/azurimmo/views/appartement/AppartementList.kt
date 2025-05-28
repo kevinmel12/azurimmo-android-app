@@ -23,9 +23,9 @@ import bts.sio.azurimmo.model.Appartement
 @Composable
 fun AppartementList(
     viewModel: AppartementViewModel = viewModel(),
-    batimentId: Int,
+    batimentId: Long, // ✅ CORRIGÉ: Long au lieu de Int pour correspondre au modèle
     onAddAppartementClick: () -> Unit,
-    onAppartementClick: (Int) -> Unit,
+    onAppartementClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int
     onEditAppartement: (Appartement) -> Unit,
     onDeleteAppartement: (Appartement) -> Unit,
     onBackClick: () -> Unit
@@ -39,8 +39,8 @@ fun AppartementList(
 
     LaunchedEffect(batimentId) {
         println("Chargement des données pour le bâtiment : $batimentId")
-        viewModel.getAppartementsByBatimentId(batimentId)
-        viewModelBat.getBatiment(batimentId)
+        viewModel.getAppartementsByBatimentId(batimentId.toInt()) // ✅ Conversion Long -> Int pour l'API
+        viewModelBat.getBatiment(batimentId.toInt()) // ✅ Conversion Long -> Int pour l'API
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -137,10 +137,14 @@ fun AppartementList(
                                 items(appartements) { appartement ->
                                     AppartementCard(
                                         appartement = appartement,
-                                        onClick = { onAppartementClick(appartement.id ?: 0) },
+                                        onClick = { appartementId ->
+                                            onAppartementClick(appartementId) // ✅ CORRIGÉ: Passer directement le Long
+                                        },
                                         onEdit = onEditAppartement,
                                         onDelete = { appartementToDelete ->
-                                            viewModel.deleteAppartement(appartementToDelete.id ?: 0)
+                                            appartementToDelete.id?.let { id ->
+                                                viewModel.deleteAppartement(id.toInt()) // ✅ Conversion Long -> Int pour l'API
+                                            }
                                             onDeleteAppartement(appartementToDelete)
                                         }
                                     )

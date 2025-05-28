@@ -25,7 +25,7 @@ fun ContratList(
     viewModel: ContratViewModel = viewModel(),
     appartementId: Int? = null,
     onAddContratClick: () -> Unit,
-    onContratClick: (Int) -> Unit,
+    onContratClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int
     onEditContrat: (Contrat) -> Unit,
     onDeleteContrat: (Contrat) -> Unit,
     onBackClick: () -> Unit
@@ -116,7 +116,7 @@ fun ContratList(
 @Composable
 fun ContratCard(
     contrat: Contrat,
-    onClick: (Int) -> Unit,
+    onClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int
     onEdit: (Contrat) -> Unit,
     onDelete: (Contrat) -> Unit
 ) {
@@ -126,9 +126,8 @@ fun ContratCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            // ✅ CORRIGÉ: Gérer l'ID nullable avec un fallback
             .clickable {
-                contrat.id?.let { id -> onClick(id) }
+                contrat.id?.let { id -> onClick(id) } // ✅ CORRIGÉ: Passer directement le Long
             },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(8.dp)
@@ -145,7 +144,6 @@ fun ContratCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    // ✅ CORRIGÉ: Gérer l'ID nullable avec un fallback
                     text = "Contrat #${contrat.id ?: "Nouveau"}",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )

@@ -1,152 +1,165 @@
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
-import bts.sio.azurimmo.model.Appartement
+package bts.sio.azurimmo.views.appartement
+
+import AppartementViewModel
+import BatimentViewModel
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.lifecycle.viewModelScope
-import bts.sio.azurimmo.api.RetrofitInstance
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import bts.sio.azurimmo.model.Appartement
 import bts.sio.azurimmo.model.Batiment
-import kotlinx.coroutines.launch
 
-class AppartementViewModel : ViewModel() {
+@Composable
+fun AppartementAdd(
+    onAddAppartement: () -> Unit,
+    batimentId: Long, // ✅ CORRIGÉ: Long comme dans AppNavigation
+    onBackClick: () -> Unit
+) {
+    val viewModel: AppartementViewModel = viewModel()
+    val batimentViewModel: BatimentViewModel = viewModel()
+    val batiment = batimentViewModel.batiment.value
 
-    // Liste mutable des appartements
-    private val _appartements = mutableStateOf<List<Appartement>>(emptyList())
-    val appartements: State<List<Appartement>> = _appartements
+    var numero by remember { mutableStateOf("") }
+    var surface by remember { mutableStateOf("") }
+    var nbPieces by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
 
-    private val _appartement = mutableStateOf<Appartement?>(null)
-    val appartement: State<Appartement?> = _appartement
-
-    private val _isLoading = mutableStateOf(false)
-    val isLoading: State<Boolean> = _isLoading
-
-    private val _errorMessage = mutableStateOf<String?>(null)
-    val errorMessage: State<String?> = _errorMessage
-
-    init {
-        // Chargement des données initiales
-        getAppartements()
+    // Charger le bâtiment au démarrage
+    LaunchedEffect(batimentId) {
+        batimentViewModel.getBatiment(batimentId.toInt()) // ✅ Conversion Long -> Int pour l'API
     }
 
-    private fun getAppartements() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val response = RetrofitInstance.api.getAppartements()
-                _appartements.value = response
-            } catch (e: Exception) {
-                _errorMessage.value = "Erreur : ${e.message}"
-            } finally {
-                _isLoading.value = false
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Bouton retour
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBackClick) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Retour")
             }
+            Text(
+                text = "Ajouter un Appartement",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
-    }
 
-    fun getAppartementById(appartementId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val response = RetrofitInstance.api.getAppartementById(appartementId.toLong())
-                _appartement.value = response
-            } catch (e: Exception) {
-                _errorMessage.value = "Erreur lors du chargement de l'appartement : ${e.message}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    // ✅ CRITIQUE: Le backend attend INT pour batimentId (pas Long)
-    fun getAppartementsByBatimentId(batimentId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _appartements.value = emptyList() // ✅ CRITIQUE: vider d'abord pour éviter les anciens résultats !
-            _errorMessage.value = null // Reset erreur
-
-            try {
-                println("🔍 Android - Recherche appartements pour bâtiment: $batimentId")
-                // ✅ CORRIGÉ: Passer directement l'Int (le backend attend int)
-                val response = RetrofitInstance.api.getAppartementsByBatimentId(batimentId)
-
-                println("📊 Android - Nombre d'appartements reçus: ${response.size}")
-                response.forEach { appartement ->
-                    println("🏠 Android - Appartement ${appartement.numero} - Bâtiment ID: ${appartement.batiment?.id}")
+        // Afficher les informations du bâtiment
+        batiment?.let {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Bâtiment sélectionné :",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "Adresse : ${it.adresse}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Ville : ${it.ville}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
-
-                if (response.isNotEmpty()) {
-                    _appartements.value = response
-                    println("✅ Android - Appartements chargés avec succès")
-                } else {
-                    println("⚠️ Android - Aucun appartement trouvé pour le bâtiment $batimentId")
-                    _appartements.value = emptyList()
-                }
-            } catch (e: Exception) {
-                println("❌ Android - Erreur lors du chargement des appartements: ${e.message}")
-                _errorMessage.value = "Erreur lors du chargement des appartements : ${e.message}"
-                _appartements.value = emptyList()
-            } finally {
-                _isLoading.value = false
             }
         }
-    }
 
-    fun addAppartement(appartement: Appartement) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val response = RetrofitInstance.api.addAppartement(appartement)
-                if (response.isSuccessful) {
-                    getAppartements() // Recharge la liste
-                } else {
-                    _errorMessage.value = "Erreur lors de l'ajout de l'appartement : ${response.message()}"
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = "Erreur : ${e.message}"
-            } finally {
-                _isLoading.value = false
+        // Champs du formulaire
+        TextField(
+            value = numero,
+            onValueChange = { numero = it },
+            label = { Text("Numéro de l'appartement") },
+            placeholder = { Text("101") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = surface,
+            onValueChange = { surface = it },
+            label = { Text("Surface (m²)") },
+            placeholder = { Text("45.5") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = nbPieces,
+            onValueChange = { nbPieces = it },
+            label = { Text("Nombre de pièces") },
+            placeholder = { Text("3") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Description") },
+            placeholder = { Text("Appartement avec balcon") },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 3
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Bouton Annuler
+            OutlinedButton(
+                onClick = onBackClick,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Annuler")
             }
-        }
-    }
 
-    fun updateAppartement(appartement: Appartement) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val appartementId = appartement.id?.toLong() ?: 0L
-                val response = RetrofitInstance.api.updateAppartement(appartementId, appartement)
-                if (response.isSuccessful) {
-                    // Recharge les appartements du même bâtiment
-                    appartement.batiment?.let { batiment ->
-                        getAppartementsByBatimentId(batiment.id.toInt())
+            // Bouton Ajouter
+            Button(
+                onClick = {
+                    if (numero.isNotBlank() && surface.isNotBlank() &&
+                        nbPieces.isNotBlank() && description.isNotBlank() && batiment != null) {
+
+                        val nouvelAppartement = Appartement(
+                            id = null, // ✅ null pour nouveau (le backend gère l'auto-increment)
+                            numero = numero.toIntOrNull() ?: 0, // ✅ CORRIGÉ: Int au lieu de String
+                            surface = surface.toFloatOrNull() ?: 0f,
+                            nbPieces = nbPieces.toIntOrNull() ?: 0, // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
+                            description = description,
+                            batiment = batiment // ✅ Utiliser le bâtiment chargé
+                        )
+
+                        println("🏗️ Android - Création appartement: ${nouvelAppartement.numero} pour bâtiment ${batiment.id}")
+                        viewModel.addAppartement(nouvelAppartement)
+                        onAddAppartement()
                     }
-                } else {
-                    _errorMessage.value = "Erreur lors de la modification de l'appartement : ${response.message()}"
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = "Erreur : ${e.message}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    fun deleteAppartement(appartementId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val response = RetrofitInstance.api.deleteAppartement(appartementId.toLong())
-                if (response.isSuccessful) {
-                    // Recharge les appartements du même bâtiment
-                    val currentAppartement = _appartement.value
-                    currentAppartement?.batiment?.let { batiment ->
-                        getAppartementsByBatimentId(batiment.id.toInt())
-                    }
-                } else {
-                    _errorMessage.value = "Erreur lors de la suppression de l'appartement : ${response.message()}"
-                }
-            } catch (e: Exception) {
-                _errorMessage.value = "Erreur : ${e.message}"
-            } finally {
-                _isLoading.value = false
+                },
+                modifier = Modifier.weight(1f),
+                enabled = numero.isNotBlank() && surface.isNotBlank() &&
+                        nbPieces.isNotBlank() && description.isNotBlank()
+            ) {
+                Text("Ajouter")
             }
         }
     }
