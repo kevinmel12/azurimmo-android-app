@@ -16,7 +16,7 @@ import bts.sio.azurimmo.model.Appartement
 @Composable
 fun AppartementCard(
     appartement: Appartement,
-    onClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int pour correspondre au modèle
+    onClick: (Long) -> Unit,
     onEdit: (Appartement) -> Unit,
     onDelete: (Appartement) -> Unit
 ) {
@@ -27,7 +27,7 @@ fun AppartementCard(
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                appartement.id?.let { onClick(it) } // ✅ CORRIGÉ: Gérer l'ID nullable
+                appartement.id?.let { onClick(it) }
             },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(8.dp)
@@ -49,7 +49,7 @@ fun AppartementCard(
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
                     Text(
-                        text = appartement.numero.toString(), // ✅ CORRIGÉ: toString() car numero est Int
+                        text = appartement.numero.toString(),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -78,7 +78,6 @@ fun AppartementCard(
                     )
                 }
 
-                // ✅ AJOUT: Afficher le nombre de pièces
                 Spacer(modifier = Modifier.height(4.dp))
                 Row {
                     Text(
@@ -86,7 +85,7 @@ fun AppartementCard(
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                     )
                     Text(
-                        text = appartement.nbPieces.toString(), // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
+                        text = appartement.nbPieces.toString(),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

@@ -23,9 +23,9 @@ import bts.sio.azurimmo.model.Appartement
 @Composable
 fun AppartementList(
     viewModel: AppartementViewModel = viewModel(),
-    batimentId: Long, // ✅ CORRIGÉ: Long au lieu de Int pour correspondre au modèle
+    batimentId: Long,
     onAddAppartementClick: () -> Unit,
-    onAppartementClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int
+    onAppartementClick: (Long) -> Unit,
     onEditAppartement: (Appartement) -> Unit,
     onDeleteAppartement: (Appartement) -> Unit,
     onBackClick: () -> Unit
@@ -39,8 +39,8 @@ fun AppartementList(
 
     LaunchedEffect(batimentId) {
         println("Chargement des données pour le bâtiment : $batimentId")
-        viewModel.getAppartementsByBatimentId(batimentId.toInt()) // ✅ Conversion Long -> Int pour l'API
-        viewModelBat.getBatiment(batimentId.toInt()) // ✅ Conversion Long -> Int pour l'API
+        viewModel.getAppartementsByBatimentId(batimentId.toInt())
+        viewModelBat.getBatiment(batimentId.toInt())
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -138,12 +138,12 @@ fun AppartementList(
                                     AppartementCard(
                                         appartement = appartement,
                                         onClick = { appartementId ->
-                                            onAppartementClick(appartementId) // ✅ CORRIGÉ: Passer directement le Long
+                                            onAppartementClick(appartementId)
                                         },
                                         onEdit = onEditAppartement,
                                         onDelete = { appartementToDelete ->
                                             appartementToDelete.id?.let { id ->
-                                                viewModel.deleteAppartement(id.toInt()) // ✅ Conversion Long -> Int pour l'API
+                                                viewModel.deleteAppartement(id.toInt())
                                             }
                                             onDeleteAppartement(appartementToDelete)
                                         }

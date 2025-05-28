@@ -14,7 +14,7 @@ import bts.sio.azurimmo.model.Appartement
 
 @Composable
 fun AppartementEdit(
-    appartementId: Long, // ✅ CORRIGÉ: Long au lieu de Int pour correspondre au modèle
+    appartementId: Long,
     onAppartementUpdate: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -22,20 +22,20 @@ fun AppartementEdit(
     val appartement = viewModel.appartement.value
     var description by remember { mutableStateOf("") }
     var numero by remember { mutableStateOf("") }
-    var nbPieces by remember { mutableStateOf("") } // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
+    var nbPieces by remember { mutableStateOf("") }
     var surface by remember { mutableStateOf("") }
 
     // Charger l'appartement à modifier
     LaunchedEffect(appartementId) {
-        viewModel.getAppartementById(appartementId.toInt()) // ✅ Conversion Long -> Int pour l'API
+        viewModel.getAppartementById(appartementId.toInt())
     }
 
     // Peupler les champs une fois l'appartement chargé
     LaunchedEffect(appartement) {
         appartement?.let {
             description = it.description
-            numero = it.numero.toString() // ✅ CORRIGÉ: toString() car numero est Int
-            nbPieces = it.nbPieces.toString() // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
+            numero = it.numero.toString()
+            nbPieces = it.nbPieces.toString()
             surface = it.surface.toString()
         }
     }
@@ -79,7 +79,7 @@ fun AppartementEdit(
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
-            value = nbPieces, // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
+            value = nbPieces,
             onValueChange = { nbPieces = it },
             label = { Text("Nombre de pièces") },
             modifier = Modifier.fillMaxWidth()
@@ -114,10 +114,10 @@ fun AppartementEdit(
 
                         val updatedAppartement = Appartement(
                             id = appartement.id,
-                            numero = numero.toIntOrNull() ?: appartement.numero, // ✅ CORRIGÉ: Int
+                            numero = numero.toIntOrNull() ?: appartement.numero,
                             description = description,
                             surface = surface.toFloatOrNull() ?: appartement.surface,
-                            nbPieces = nbPieces.toIntOrNull() ?: appartement.nbPieces, // ✅ CORRIGÉ: nbPieces
+                            nbPieces = nbPieces.toIntOrNull() ?: appartement.nbPieces,
                             batiment = appartement.batiment
                         )
                         viewModel.updateAppartement(updatedAppartement)

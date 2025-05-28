@@ -17,7 +17,7 @@ import bts.sio.azurimmo.model.Batiment
 @Composable
 fun AppartementAdd(
     onAddAppartement: () -> Unit,
-    batimentId: Long, // ✅ CORRIGÉ: Long comme dans AppNavigation
+    batimentId: Long,
     onBackClick: () -> Unit
 ) {
     val viewModel: AppartementViewModel = viewModel()
@@ -31,7 +31,7 @@ fun AppartementAdd(
 
     // Charger le bâtiment au démarrage
     LaunchedEffect(batimentId) {
-        batimentViewModel.getBatiment(batimentId.toInt()) // ✅ Conversion Long -> Int pour l'API
+        batimentViewModel.getBatiment(batimentId.toInt())
     }
 
     Column(
@@ -142,15 +142,15 @@ fun AppartementAdd(
                         nbPieces.isNotBlank() && description.isNotBlank() && batiment != null) {
 
                         val nouvelAppartement = Appartement(
-                            id = null, // ✅ null pour nouveau (le backend gère l'auto-increment)
-                            numero = numero.toIntOrNull() ?: 0, // ✅ CORRIGÉ: Int au lieu de String
+                            id = null,
+                            numero = numero.toIntOrNull() ?: 0,
                             surface = surface.toFloatOrNull() ?: 0f,
-                            nbPieces = nbPieces.toIntOrNull() ?: 0, // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
+                            nbPieces = nbPieces.toIntOrNull() ?: 0,
                             description = description,
-                            batiment = batiment // ✅ Utiliser le bâtiment chargé
+                            batiment = batiment
                         )
 
-                        println("🏗️ Android - Création appartement: ${nouvelAppartement.numero} pour bâtiment ${batiment.id}")
+                        println("🏗Android - Création appartement: ${nouvelAppartement.numero} pour bâtiment ${batiment.id}")
                         viewModel.addAppartement(nouvelAppartement)
                         onAddAppartement()
                     }

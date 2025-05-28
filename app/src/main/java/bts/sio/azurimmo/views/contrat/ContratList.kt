@@ -25,7 +25,7 @@ fun ContratList(
     viewModel: ContratViewModel = viewModel(),
     appartementId: Int? = null,
     onAddContratClick: () -> Unit,
-    onContratClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int
+    onContratClick: (Long) -> Unit,
     onEditContrat: (Contrat) -> Unit,
     onDeleteContrat: (Contrat) -> Unit,
     onBackClick: () -> Unit
@@ -116,7 +116,7 @@ fun ContratList(
 @Composable
 fun ContratCard(
     contrat: Contrat,
-    onClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int
+    onClick: (Long) -> Unit,
     onEdit: (Contrat) -> Unit,
     onDelete: (Contrat) -> Unit
 ) {
@@ -127,7 +127,7 @@ fun ContratCard(
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                contrat.id?.let { id -> onClick(id) } // ✅ CORRIGÉ: Passer directement le Long
+                contrat.id?.let { id -> onClick(id) }
             },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(8.dp)
