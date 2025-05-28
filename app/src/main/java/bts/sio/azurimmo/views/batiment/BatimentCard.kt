@@ -16,7 +16,7 @@ import bts.sio.azurimmo.model.Batiment
 @Composable
 fun BatimentCard(
     batiment: Batiment,
-    onClick: (Long) -> Unit, // ✅ CORRIGÉ: Long au lieu de Int
+    onClick: (Long) -> Unit,
     onEdit: (Batiment) -> Unit,
     onDelete: (Batiment) -> Unit
 ) {
@@ -26,7 +26,7 @@ fun BatimentCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { onClick(batiment.id) }, // ✅ Direct car non-nullable
+            .clickable { onClick(batiment.id) },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(8.dp)
     ) {

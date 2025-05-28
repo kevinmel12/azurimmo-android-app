@@ -106,7 +106,6 @@ class BatimentViewModel : ViewModel() {
                 } else {
                     println("❌ Android - Erreur suppression bâtiment: ${response.code()} - ${response.message()}")
 
-                    // ✅ AMÉLIORATION: Gestion spécifique des erreurs de contrainte
                     when (response.code()) {
                         409, 400 -> {
                             _errorMessage.value = "❌ Impossible de supprimer ce bâtiment : il contient encore des appartements. Supprimez d'abord tous les appartements."
@@ -122,7 +121,6 @@ class BatimentViewModel : ViewModel() {
             } catch (e: Exception) {
                 println("❌ Android - Exception suppression bâtiment: ${e.message}")
 
-                // ✅ AMÉLIORATION: Gestion des exceptions spécifiques
                 if (e.message?.contains("constraint", ignoreCase = true) == true ||
                     e.message?.contains("foreign key", ignoreCase = true) == true) {
                     _errorMessage.value = "❌ Ce bâtiment ne peut pas être supprimé car il contient des appartements. Supprimez d'abord tous les appartements."
@@ -135,7 +133,6 @@ class BatimentViewModel : ViewModel() {
         }
     }
 
-    // ✅ NOUVEAU: Fonction pour nettoyer les messages d'erreur
     fun clearError() {
         _errorMessage.value = null
     }

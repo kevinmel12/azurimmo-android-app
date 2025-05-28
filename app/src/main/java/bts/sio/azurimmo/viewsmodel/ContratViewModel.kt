@@ -59,7 +59,6 @@ class ContratViewModel : ViewModel() {
         }
     }
 
-    // ✅ CRITIQUE: Le backend attend INT pour appartementId (pas Long)
     fun getContratsByAppartementId(appartementId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -68,7 +67,6 @@ class ContratViewModel : ViewModel() {
 
             try {
                 println("🔍 Android - Recherche contrats pour appartement: $appartementId")
-                // ✅ CORRIGÉ: Passer directement l'Int (pas de conversion en Long)
                 val response = RetrofitInstance.api.getContratsByAppartementId(appartementId)
 
                 println("📊 Android - Nombre de contrats reçus: ${response.size}")
@@ -93,7 +91,6 @@ class ContratViewModel : ViewModel() {
         }
     }
 
-    // ✅ CORRIGÉ: Recharger les contrats de l'appartement après ajout
     fun addContrat(contrat: Contrat) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -102,9 +99,7 @@ class ContratViewModel : ViewModel() {
                 val response = RetrofitInstance.api.addContrat(contrat)
                 if (response.isSuccessful) {
                     println("✅ Android - Contrat ajouté avec succès")
-                    // ✅ CORRIGER: Recharger les contrats de cet appartement spécifique !
                     contrat.appartement?.id?.let { appartementIdLong ->
-                        // ✅ CORRECTION: Convertir Long -> Int pour l'API backend
                         getContratsByAppartementId(appartementIdLong.toInt())
                     } ?: getContrats() // Fallback: recharge tous les contrats
                 } else {

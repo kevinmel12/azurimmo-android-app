@@ -27,7 +27,7 @@ interface ApiService {
     suspend fun getAppartementById(@Path("id") id: Long): Appartement
 
     @GET("api/appartements/batiment/{batimentId}")
-    suspend fun getAppartementsByBatimentId(@Path("batimentId") batimentId: Int): List<Appartement> // ✅ INT comme le backend !
+    suspend fun getAppartementsByBatimentId(@Path("batimentId") batimentId: Int): List<Appartement>
 
     @POST("api/appartements/")
     suspend fun addAppartement(@Body appartement: Appartement): Response<Appartement>
@@ -46,7 +46,7 @@ interface ApiService {
     suspend fun getContratById(@Path("id") id: Long): Contrat
 
     @GET("api/contrats/appartement/{appartementId}")
-    suspend fun getContratsByAppartementId(@Path("appartementId") appartementId: Int): List<Contrat> // ✅ INT comme le backend !
+    suspend fun getContratsByAppartementId(@Path("appartementId") appartementId: Int): List<Contrat>
 
     @POST("api/contrats/")
     suspend fun addContrat(@Body contrat: Contrat): Response<Contrat>

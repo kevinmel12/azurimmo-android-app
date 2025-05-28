@@ -81,7 +81,6 @@ fun LocataireList(
                         )
                     }
 
-                    // ✅ LOGIQUE DIFFÉRENTE selon le contexte
                     if (contratId != null) {
                         // MODE CONTRAT : Afficher LE locataire du contrat
                         contrat?.let { currentContrat ->

@@ -91,7 +91,7 @@ fun BatimentEdit(
                 onClick = {
                     if (adresse.isNotBlank() && ville.isNotBlank() && batiment != null) {
                         val updatedBatiment = Batiment(
-                            id = batiment.id, // ✅ Direct car non-nullable
+                            id = batiment.id,
                             adresse = adresse,
                             ville = ville
                         )

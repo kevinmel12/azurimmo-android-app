@@ -78,7 +78,6 @@ class LocataireViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // ✅ CORRIGÉ: Gérer l'ID nullable
                 val locataireId = locataire.id
                 if (locataireId != null) {
                     val response = RetrofitInstance.api.updateLocataire(locataireId, locataire)

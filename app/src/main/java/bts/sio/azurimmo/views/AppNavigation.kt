@@ -231,7 +231,6 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
                 LocataireList(
                     contratId = contratId.toInt(),
                     onAddLocataireClick = {
-                        // ✅ SOLUTION SIMPLE: Passer le contratId pour assignation automatique
                         navController.navigate("add_locataire_with_assignment/$contratId")
                     },
                     onLocataireClick = { locataireId ->
@@ -252,7 +251,6 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
             }
         }
 
-        // ✅ SOLUTION SIMPLE: Utiliser le même LocataireAdd avec paramètre contratId
         composable(
             route = "add_locataire_with_assignment/{contratId}",
             arguments = listOf(navArgument("contratId") { type = NavType.LongType })
@@ -266,7 +264,7 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
                     onBackClick = {
                         navController.popBackStack()
                     },
-                    contratId = contratId.toInt() // ✅ Passer contratId pour assignation automatique
+                    contratId = contratId.toInt()
                 )
             } else {
                 Text("Erreur : Identifiant de contrat manquant")

@@ -197,7 +197,7 @@ fun LocataireAdd(
                             onAddLocataire()
 
                         } catch (e: Exception) {
-                            println("❌ Android - Erreur création locataire: ${e.message}")
+                            println("Android - Erreur création locataire: ${e.message}")
                             e.printStackTrace()
                         }
                     }

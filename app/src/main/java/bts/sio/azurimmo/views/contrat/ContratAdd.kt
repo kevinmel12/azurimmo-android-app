@@ -107,7 +107,6 @@ fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> 
             // Bouton Ajouter
             Button(
                 onClick = {
-                    // ✅ Vérifier que tous les champs sont remplis
                     if (dateEntree.isNotBlank() && dateSortie.isNotBlank() &&
                         montantLoyer.isNotBlank() && montantCharges.isNotBlank() &&
                         statut.isNotBlank()) {
@@ -115,12 +114,11 @@ fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> 
                         println("🔍 Android - Création contrat pour appartement: $appartementId")
 
                         try {
-                            // ✅ CORRIGÉ: Parser les dates comme java.sql.Date (comme le backend attend)
                             val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
                             val parsedDateEntree: java.sql.Date = try {
                                 val utilDate = dateFormat.parse(dateEntree)
-                                java.sql.Date(utilDate!!.time) // ✅ Conversion java.util.Date -> java.sql.Date
+                                java.sql.Date(utilDate!!.time)
                             } catch (e: Exception) {
                                 println("❌ Erreur parsing date entrée: ${e.message}")
                                 java.sql.Date(System.currentTimeMillis())
@@ -128,31 +126,29 @@ fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> 
 
                             val parsedDateSortie: java.sql.Date = try {
                                 val utilDate = dateFormat.parse(dateSortie)
-                                java.sql.Date(utilDate!!.time) // ✅ Conversion java.util.Date -> java.sql.Date
+                                java.sql.Date(utilDate!!.time)
                             } catch (e: Exception) {
                                 println("❌ Erreur parsing date sortie: ${e.message}")
                                 java.sql.Date(System.currentTimeMillis())
                             }
 
-                            // ✅ Conversions numériques sécurisées
                             val loyer = montantLoyer.toDoubleOrNull() ?: 0.0
                             val charges = montantCharges.toDoubleOrNull() ?: 0.0
 
-                            // ✅ CORRIGÉ: Créer l'appartement avec Long ID nullable
                             val appartementLien = Appartement(
-                                id = appartementId.toLong(), // ✅ Conversion Int -> Long
-                                numero = 0, // ✅ CORRIGÉ: Int au lieu de String
+                                id = appartementId.toLong(),
+                                numero = 0,
                                 description = "temp",
                                 surface = 0f,
-                                nbPieces = 0, // ✅ CORRIGÉ: nbPieces au lieu de nbrePieces
-                                batiment = Batiment(id = 0L, adresse = "temp", ville = "temp") // ✅ 0L temporaire
+                                nbPieces = 0,
+                                batiment = Batiment(id = 0L, adresse = "temp", ville = "temp")
                             )
 
                             // ✅ CORRIGÉ: Créer le contrat avec les types exacts du backend
                             val nouveauContrat = Contrat(
                                 id = null, // ✅ CORRIGÉ: null pour nouveau contrat
-                                dateEntree = parsedDateEntree, // ✅ java.sql.Date
-                                dateSortie = parsedDateSortie, // ✅ java.sql.Date
+                                dateEntree = parsedDateEntree,
+                                dateSortie = parsedDateSortie,
                                 montantLoyer = loyer,
                                 montantCharges = charges,
                                 statut = statut,
@@ -165,7 +161,6 @@ fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> 
                             // ✅ Envoyer au ViewModel
                             viewModel.addContrat(nouveauContrat)
 
-                            // ✅ Fermer l'écran
                             onAddContrat()
 
                         } catch (e: Exception) {
