@@ -102,7 +102,14 @@ fun ContratList(
                                     contrat = contrat,
                                     onClick = onContratClick,
                                     onEdit = onEditContrat,
-                                    onDelete = onDeleteContrat
+                                    onDelete = { contratToDelete ->
+                                        // ✅ CORRECTION: Appeler le ViewModel pour supprimer
+                                        contratToDelete.id?.let { id ->
+                                            println("🗑️ Android - Suppression du contrat: $id")
+                                            viewModel.deleteContrat(id.toInt())
+                                        }
+                                        onDeleteContrat(contratToDelete)
+                                    }
                                 )
                             }
                         }
@@ -160,6 +167,14 @@ fun ContratCard(
                     text = "Statut: ${contrat.statut}",
                     style = MaterialTheme.typography.bodyMedium
                 )
+
+                contrat.locataire?.let { locataire ->
+                    Text(
+                        text = "Locataire: ${locataire.prenom} ${locataire.nom}",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             // Menu contextuel
@@ -188,6 +203,7 @@ fun ContratCard(
                         text = { Text("Supprimer") },
                         onClick = {
                             showMenu = false
+                            println("🗑️ Android - Clic suppression contrat ${contrat.id}")
                             onDelete(contrat)
                         }
                     )

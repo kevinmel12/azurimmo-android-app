@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import bts.sio.azurimmo.model.Locataire
+import bts.sio.azurimmo.model.Contrat
 
 @Composable
 fun LocataireList(
@@ -27,7 +28,6 @@ fun LocataireList(
     onDeleteLocataire: (Locataire) -> Unit,
     onBackClick: () -> Unit
 ) {
-    // ✅ NOUVEAU: ViewModel pour récupérer le contrat
     val contratViewModel: ContratViewModel = viewModel()
     val contrat = contratViewModel.contrat.value
 
@@ -35,7 +35,6 @@ fun LocataireList(
     val isLoading = viewModel.isLoading.value || contratViewModel.isLoading.value
     val errorMessage = viewModel.errorMessage.value ?: contratViewModel.errorMessage.value
 
-    // ✅ NOUVEAU: Charger le contrat spécifique au lieu de tous les locataires
     LaunchedEffect(contratId) {
         if (contratId != null) {
             println("🔍 Android - Chargement du contrat: $contratId")
@@ -107,7 +106,34 @@ fun LocataireList(
                                             locataire = currentContrat.locataire!!,
                                             onClick = onLocataireClick,
                                             onEdit = onEditLocataire,
-                                            onDelete = onDeleteLocataire
+                                            onDelete = { locataireToDelete ->
+                                                println("Android - Suppression du locataire ${locataireToDelete.prenom} ${locataireToDelete.nom} du contrat $contratId")
+
+                                                // 1. Retirer l'assignation du contrat (mettre locataire = null)
+                                                val contratModifie = Contrat(
+                                                    id = currentContrat.id,
+                                                    dateEntree = currentContrat.dateEntree,
+                                                    dateSortie = currentContrat.dateSortie,
+                                                    montantLoyer = currentContrat.montantLoyer,
+                                                    montantCharges = currentContrat.montantCharges,
+                                                    statut = currentContrat.statut,
+                                                    appartement = currentContrat.appartement,
+                                                    locataire = null
+                                                )
+
+                                                contratViewModel.updateContrat(contratModifie)
+                                                println("Android - Locataire retiré du contrat")
+
+                                                // 2. Optionnel : Supprimer complètement le locataire de la base
+                                                // (commenté pour l'instant, juste retirer l'assignation)
+                                                /*
+                                                locataireToDelete.id?.let { id ->
+                                                    viewModel.deleteLocataire(id.toInt())
+                                                }
+                                                */
+
+                                                onDeleteLocataire(locataireToDelete)
+                                            }
                                         )
                                     }
                                 }
