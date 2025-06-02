@@ -158,7 +158,7 @@ fun LocataireAdd(
 
                             // Créer le locataire
                             val nouveauLocataire = Locataire(
-                                id = null,
+                                id = 0,
                                 nom = nom,
                                 prenom = prenom,
                                 lieuN = lieuN,

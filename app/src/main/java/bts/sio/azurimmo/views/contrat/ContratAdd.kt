@@ -1,6 +1,6 @@
 package bts.sio.azurimmo.views.contrat
 
-import ContratViewModel
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -9,172 +9,278 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import bts.sio.azurimmo.model.Appartement
-import bts.sio.azurimmo.model.Batiment
-import bts.sio.azurimmo.model.Contrat
-import java.text.SimpleDateFormat
+import bts.sio.azurimmo.api.RetrofitInstance
+import bts.sio.azurimmo.model.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> Unit) {
-    val viewModel: ContratViewModel = viewModel()
-    var dateEntree by remember { mutableStateOf("") }
-    var dateSortie by remember { mutableStateOf("") }
-    var montantLoyer by remember { mutableStateOf("") }
-    var montantCharges by remember { mutableStateOf("") }
+    var selectedLocataireId by remember { mutableStateOf(0L) }
+    var selectedAssocieId by remember { mutableStateOf(0L) }
+    var loyer by remember { mutableStateOf("") }
+    var charges by remember { mutableStateOf("") }
     var statut by remember { mutableStateOf("") }
+    var parsedDateEntree by remember { mutableStateOf<Date?>(null) }
+    var parsedDateSortie by remember { mutableStateOf<Date?>(null) }
+
+    var locataires by remember { mutableStateOf<List<Locataire>>(emptyList()) }
+    var associes by remember { mutableStateOf<List<Associe>>(emptyList()) }
+    var showDateEntreePicker by remember { mutableStateOf(false) }
+    var showDateSortiePicker by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Charger les données au démarrage
+    LaunchedEffect(Unit) {
+        try {
+            isLoading = true
+            locataires = RetrofitInstance.api.getLocataires()
+            associes = RetrofitInstance.api.getAssocies()
+            Log.d("ContratAdd", "Chargé ${locataires.size} locataires et ${associes.size} associés")
+        } catch (e: Exception) {
+            Log.e("ContratAdd", "Erreur chargement données", e)
+        } finally {
+            isLoading = false
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Bouton retour
+        // Header avec bouton retour
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
             IconButton(onClick = onBackClick) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Retour")
             }
             Text(
-                text = "Ajouter un Contrat",
-                style = MaterialTheme.typography.titleLarge,
+                text = "Ajouter un contrat",
+                style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
 
-        TextField(
-            value = dateEntree,
-            onValueChange = { dateEntree = it },
-            label = { Text("Date d'entrée (DD/MM/YYYY)") },
-            placeholder = { Text("10/02/2025") },
-            modifier = Modifier.fillMaxWidth()
-        )
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextField(
-            value = dateSortie,
-            onValueChange = { dateSortie = it },
-            label = { Text("Date de sortie (DD/MM/YYYY)") },
-            placeholder = { Text("10/02/2026") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = montantLoyer,
-            onValueChange = { montantLoyer = it },
-            label = { Text("Montant du loyer") },
-            placeholder = { Text("800") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = montantCharges,
-            onValueChange = { montantCharges = it },
-            label = { Text("Montant des charges") },
-            placeholder = { Text("100") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = statut,
-            onValueChange = { statut = it },
-            label = { Text("Statut") },
-            placeholder = { Text("Actif") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Bouton Annuler
-            OutlinedButton(
-                onClick = onBackClick,
-                modifier = Modifier.weight(1f)
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Text("Annuler")
+                CircularProgressIndicator()
+            }
+        } else {
+            // Dropdown Locataire
+            var expandedLocataire by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(
+                expanded = expandedLocataire,
+                onExpandedChange = { expandedLocataire = !expandedLocataire }
+            ) {
+                OutlinedTextField(
+                    value = locataires.find { it.id == selectedLocataireId }?.let { "${it.prenom} ${it.nom}" } ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Sélectionner un locataire") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedLocataire) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedLocataire,
+                    onDismissRequest = { expandedLocataire = false }
+                ) {
+                    locataires.forEach { locataire ->
+                        DropdownMenuItem(
+                            text = { Text("${locataire.prenom} ${locataire.nom}") },
+                            onClick = {
+                                selectedLocataireId = locataire.id
+                                expandedLocataire = false
+                            }
+                        )
+                    }
+                }
             }
 
-            // Bouton Ajouter
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Dropdown Associé
+            var expandedAssocie by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(
+                expanded = expandedAssocie,
+                onExpandedChange = { expandedAssocie = !expandedAssocie }
+            ) {
+                OutlinedTextField(
+                    value = associes.find { it.id == selectedAssocieId }?.let { "${it.prenom} ${it.nom}" } ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Sélectionner un associé responsable") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAssocie) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedAssocie,
+                    onDismissRequest = { expandedAssocie = false }
+                ) {
+                    associes.forEach { associe ->
+                        DropdownMenuItem(
+                            text = { Text("${associe.prenom} ${associe.nom}") },
+                            onClick = {
+                                selectedAssocieId = associe.id
+                                expandedAssocie = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Champ Loyer
+            OutlinedTextField(
+                value = loyer,
+                onValueChange = { loyer = it },
+                label = { Text("Montant du loyer (€)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Champ Charges
+            OutlinedTextField(
+                value = charges,
+                onValueChange = { charges = it },
+                label = { Text("Montant des charges (€)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Dropdown Statut
+            var expandedStatut by remember { mutableStateOf(false) }
+            val statutOptions = listOf("Actif", "Résilié", "En attente")
+
+            ExposedDropdownMenuBox(
+                expanded = expandedStatut,
+                onExpandedChange = { expandedStatut = !expandedStatut }
+            ) {
+                OutlinedTextField(
+                    value = statut,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Statut") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedStatut) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedStatut,
+                    onDismissRequest = { expandedStatut = false }
+                ) {
+                    statutOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                statut = option
+                                expandedStatut = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Bouton de création
+            val isFormValid = selectedLocataireId != 0L &&
+                    selectedAssocieId != 0L &&
+                    loyer.isNotEmpty() &&
+                    charges.isNotEmpty() &&
+                    statut.isNotEmpty()
+
             Button(
                 onClick = {
-                    if (dateEntree.isNotBlank() && dateSortie.isNotBlank() &&
-                        montantLoyer.isNotBlank() && montantCharges.isNotBlank() &&
-                        statut.isNotBlank()) {
+                    if (isFormValid) {
+                        val contratScope = CoroutineScope(Dispatchers.IO)
+                        contratScope.launch {
+                            try {
+                                val selectedLocataire = locataires.find { it.id == selectedLocataireId }
+                                val selectedAssocie = associes.find { it.id == selectedAssocieId }
 
-                        println("🔍 Android - Création contrat pour appartement: $appartementId")
+                                val nouveauContrat = Contrat(
+                                    id = 0,
+                                    dateEntree = parsedDateEntree,
+                                    dateSortie = parsedDateSortie,
+                                    montantLoyer = loyer.toDoubleOrNull() ?: 0.0,
+                                    montantCharges = charges.toDoubleOrNull() ?: 0.0,
+                                    statut = statut,
+                                    appartement = Appartement(id = appartementId.toLong()),
+                                    locataire = selectedLocataire,
+                                    associe = selectedAssocie
+                                )
 
-                        try {
-                            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                Log.d("ContratAdd", "Création contrat: $nouveauContrat")
 
-                            val parsedDateEntree: java.sql.Date = try {
-                                val utilDate = dateFormat.parse(dateEntree)
-                                java.sql.Date(utilDate!!.time)
+                                val response = RetrofitInstance.api.addContrat(nouveauContrat)
+                                if (response.isSuccessful) {
+                                    Log.d("ContratAdd", "Contrat créé avec succès")
+                                    withContext(Dispatchers.Main) {
+                                        onAddContrat()
+                                    }
+                                } else {
+                                    Log.e("ContratAdd", "Erreur response: ${response.code()}, ${response.message()}")
+                                }
                             } catch (e: Exception) {
-                                println("❌ Erreur parsing date entrée: ${e.message}")
-                                java.sql.Date(System.currentTimeMillis())
+                                Log.e("ContratAdd", "Erreur création contrat", e)
                             }
-
-                            val parsedDateSortie: java.sql.Date = try {
-                                val utilDate = dateFormat.parse(dateSortie)
-                                java.sql.Date(utilDate!!.time)
-                            } catch (e: Exception) {
-                                println("❌ Erreur parsing date sortie: ${e.message}")
-                                java.sql.Date(System.currentTimeMillis())
-                            }
-
-                            val loyer = montantLoyer.toDoubleOrNull() ?: 0.0
-                            val charges = montantCharges.toDoubleOrNull() ?: 0.0
-
-                            val appartementLien = Appartement(
-                                id = appartementId.toLong(),
-                                numero = 0,
-                                description = "temp",
-                                surface = 0f,
-                                nbPieces = 0,
-                                batiment = Batiment(id = 0L, adresse = "temp", ville = "temp")
-                            )
-
-
-                            val nouveauContrat = Contrat(
-                                id = 0,
-                                dateEntree = parsedDateEntree,
-                                dateSortie = parsedDateSortie,
-                                montantLoyer = loyer,
-                                montantCharges = charges,
-                                statut = statut,
-                                appartement = appartementLien,
-                                locataire = null
-                            )
-
-                            println("📄 Android - Contrat créé: loyer=${nouveauContrat.montantLoyer}€, appartement=${nouveauContrat.appartement?.id}")
-
-                            // ✅ Envoyer au ViewModel
-                            viewModel.addContrat(nouveauContrat)
-
-                            onAddContrat()
-
-                        } catch (e: Exception) {
-                            println("❌ Android - Erreur critique création contrat: ${e.message}")
-                            e.printStackTrace()
                         }
+                    } else {
+                        Log.w("ContratAdd", "Formulaire invalide")
                     }
                 },
-                modifier = Modifier.weight(1f),
-                enabled = dateEntree.isNotBlank() && dateSortie.isNotBlank() &&
-                        montantLoyer.isNotBlank() && montantCharges.isNotBlank() &&
-                        statut.isNotBlank()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = isFormValid
             ) {
-                Text("Ajouter")
+                Text("Créer le contrat")
+            }
+
+            // Debug info
+            if (selectedLocataireId != 0L || selectedAssocieId != 0L) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Text(
+                            text = "Sélection actuelle:",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        if (selectedLocataireId != 0L) {
+                            Text(
+                                text = "Locataire: ${locataires.find { it.id == selectedLocataireId }?.let { "${it.prenom} ${it.nom}" }}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        if (selectedAssocieId != 0L) {
+                            Text(
+                                text = "Associé: ${associes.find { it.id == selectedAssocieId }?.let { "${it.prenom} ${it.nom}" }}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
             }
         }
     }
