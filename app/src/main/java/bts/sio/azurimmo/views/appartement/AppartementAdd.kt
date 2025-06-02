@@ -142,7 +142,7 @@ fun AppartementAdd(
                         nbPieces.isNotBlank() && description.isNotBlank() && batiment != null) {
 
                         val nouvelAppartement = Appartement(
-                            id = null,
+                            id = 0,
                             numero = numero.toIntOrNull() ?: 0,
                             surface = surface.toFloatOrNull() ?: 0f,
                             nbPieces = nbPieces.toIntOrNull() ?: 0,

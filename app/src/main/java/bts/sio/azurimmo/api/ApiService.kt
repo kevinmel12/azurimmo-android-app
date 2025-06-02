@@ -72,4 +72,20 @@ interface ApiService {
 
     @DELETE("api/locataires/{id}")
     suspend fun deleteLocataire(@Path("id") id: Long): Response<Void>
+
+    // ============ ASSOCIÉS ============
+    @GET("api/associes/")
+    suspend fun getAssocies(): List<Associe>
+
+    @GET("api/associes/{id}")
+    suspend fun getAssocieById(@Path("id") id: Long): Associe
+
+    @POST("api/associes/")
+    suspend fun addAssocie(@Body associe: Associe): Response<Associe>
+
+    @PUT("api/associes/{id}")
+    suspend fun updateAssocie(@Path("id") id: Long, @Body associe: Associe): Response<Associe>
+
+    @DELETE("api/associes/{id}")
+    suspend fun deleteAssocie(@Path("id") id: Long): Response<Void>
 }

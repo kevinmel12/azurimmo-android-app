@@ -144,9 +144,9 @@ fun ContratAdd(onAddContrat: () -> Unit, appartementId: Int, onBackClick: () -> 
                                 batiment = Batiment(id = 0L, adresse = "temp", ville = "temp")
                             )
 
-                            // ✅ CORRIGÉ: Créer le contrat avec les types exacts du backend
+
                             val nouveauContrat = Contrat(
-                                id = null, // ✅ CORRIGÉ: null pour nouveau contrat
+                                id = 0,
                                 dateEntree = parsedDateEntree,
                                 dateSortie = parsedDateSortie,
                                 montantLoyer = loyer,
